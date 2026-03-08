@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 180 30% 98%;
+  --foreground: 195 28% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 195 28% 15%;
+  --border: 185 21% 88%;
+  --muted: 175 24% 94%;
+  --muted-foreground: 192 16% 42%;
+  --primary: 173 48% 37%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 196 73% 94%;
+  --accent-foreground: 195 30% 22%;
+  --radius: 0.8rem;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(190 35% 96%) 100%);
+  color: hsl(var(--foreground));
+}
