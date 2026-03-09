@@ -72,9 +72,9 @@ Open `http://localhost:3000`.
 - `pnpm db:seed`: seed demo user + ingredient catalog
 
 ## Current App Routes (Scaffold)
-- `/`: Home dashboard
-- `/log-meal`: Log meal flow placeholder
-- `/log-symptoms`: Log symptoms placeholder
+- `/`: Home dashboard (live daily score query)
+- `/log-meal`: Working meal logging flow (ingredient search, custom ingredient, save meal)
+- `/log-symptoms`: Working slider-based symptom logging flow
 - `/summary`: Daily summary placeholder
 - `/insights`: Food impact insights placeholder
 - `/recipes`: Recipe builder placeholder
@@ -112,6 +112,13 @@ The app currently includes deterministic service modules:
 
 These provide v1 impact scoring and next-day prediction foundations without paid external APIs.
 
+### Unknown Ingredient Backtrace (planned, no AI)
+Planned deterministic feature to detect \"possible new trigger ingredients\" when users feel bad but known ingredients look safe:
+- identify unexpected-bad days (score significantly worse than baseline)
+- isolate low-history ingredients eaten in prior 48-72 hours
+- rank candidates by repetition + symptom overlap + time proximity
+- show a watchlist section in Insights with suspicion score and evidence count
+
 ## Testing
 
 ### Unit tests (Vitest)
@@ -136,8 +143,9 @@ Runs with a mobile emulation project (`Pixel 7`) and starts local dev server aut
 - Keep `.env` private and never commit secrets.
 
 ## Suggested Next Build Steps
-1. Build complete meal logging form with searchable ingredient picker.
-2. Build symptom slider form with 10-second logging UX.
-3. Implement insight computation job after each symptom log.
-4. Replace demo user context with Auth.js when preparing publish.
-5. Add offline caching for core logging flows (PWA hardening).
+1. Build Insights page with ingredient correlation cards and confidence labels.
+2. Add unknown culprit backtrace section (`possible new triggers`) in Insights.
+3. Add daily summary visualizations and trend comparison.
+4. Implement background recomputation job for analytics snapshots.
+5. Replace demo user context with Auth.js when preparing publish.
+6. Add offline caching for core logging flows (PWA hardening).

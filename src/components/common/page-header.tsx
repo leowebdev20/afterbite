@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
@@ -15,23 +14,20 @@ export function PageHeader({ title, subtitle, showBack = true }: PageHeaderProps
 
   return (
     <header className="mb-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         {showBack && (
           <button
             type="button"
             onClick={() => router.back()}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-card/70 text-foreground"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border bg-card/80 text-foreground shadow-sm"
             aria-label="Go back"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
         )}
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-4xl font-semibold tracking-tight">{title}</h1>
       </div>
-      {subtitle ? <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p> : null}
-      <Link href="/" className="mt-2 inline-block text-xs text-muted-foreground underline-offset-2 hover:underline">
-        Home
-      </Link>
+      {subtitle ? <p className="mt-3 max-w-sm text-lg leading-7 text-muted-foreground">{subtitle}</p> : null}
     </header>
   );
 }
