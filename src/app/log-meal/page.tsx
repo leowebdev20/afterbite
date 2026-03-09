@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { PageHeader } from "@/components/common/page-header";
 import { api } from "@/trpc/client";
 
 export default function LogMealPage() {
@@ -52,11 +53,10 @@ export default function LogMealPage() {
   };
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-md p-4">
-      <h1 className="text-2xl font-semibold">Log Meal</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Add meal in seconds using ingredient search.</p>
+    <main className="mx-auto min-h-dvh w-full max-w-md px-4 py-5">
+      <PageHeader title="Log Meal" subtitle="Add a meal quickly with ingredients or custom entries." />
 
-      <form onSubmit={onSubmit} className="mt-5 space-y-3 rounded-xl bg-card p-4 shadow-sm">
+      <form onSubmit={onSubmit} className="space-y-3 rounded-2xl border bg-card/80 p-4 shadow-sm backdrop-blur">
         <label className="block text-sm">
           <span className="mb-1 block text-muted-foreground">Meal name</span>
           <input
@@ -79,7 +79,7 @@ export default function LogMealPage() {
         </label>
 
         {query.trim().length > 0 && (
-          <div className="rounded-lg border bg-background p-2">
+          <div className="rounded-xl border bg-background/80 p-2">
             <ul className="space-y-1">
               {(ingredientQuery.data ?? []).map((ingredient) => (
                 <li key={ingredient.id}>
@@ -94,11 +94,7 @@ export default function LogMealPage() {
               ))}
             </ul>
             {(ingredientQuery.data?.length ?? 0) === 0 && (
-              <button
-                type="button"
-                onClick={onCreateCustomIngredient}
-                className="mt-1 w-full rounded-md bg-accent px-2 py-2 text-left text-sm text-accent-foreground"
-              >
+              <button type="button" onClick={onCreateCustomIngredient} className="mt-1 w-full rounded-md bg-accent px-2 py-2 text-left text-sm text-accent-foreground">
                 Create custom ingredient: &quot;{query.trim()}&quot;
               </button>
             )}
@@ -110,7 +106,7 @@ export default function LogMealPage() {
             <button
               key={ingredient.id}
               type="button"
-              className="rounded-full bg-accent px-3 py-1 text-xs text-accent-foreground"
+              className="rounded-full border bg-accent px-3 py-1 text-xs text-accent-foreground"
               onClick={() => setSelected((prev) => prev.filter((item) => item.id !== ingredient.id))}
             >
               {ingredient.name} ×
@@ -123,7 +119,7 @@ export default function LogMealPage() {
             type="checkbox"
             checked={saveAsRecipe}
             onChange={(e) => setSaveAsRecipe(e.target.checked)}
-            className="h-4 w-4"
+            className="h-4 w-4 accent-primary"
           />
           Save this meal as a recipe
         </label>
@@ -131,7 +127,7 @@ export default function LogMealPage() {
         <button
           type="submit"
           disabled={addMeal.isPending || selectedIds.size === 0 || mealName.trim().length === 0}
-          className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
+            className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
         >
           {addMeal.isPending ? "Saving..." : "Save Meal"}
         </button>
@@ -141,7 +137,7 @@ export default function LogMealPage() {
         <h2 className="text-lg font-semibold">Today&apos;s Meals</h2>
         <ul className="mt-2 space-y-2">
           {(todayMeals.data ?? []).map((meal) => (
-            <li key={meal.id} className="rounded-xl bg-card p-3 shadow-sm">
+            <li key={meal.id} className="rounded-xl border bg-card/70 p-3 shadow-sm">
               <p className="font-medium">{meal.name}</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {meal.items.map((item) => item.ingredient.name).join(", ") || "No ingredients"}

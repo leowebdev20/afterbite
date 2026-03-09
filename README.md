@@ -23,7 +23,7 @@ AfterBite is a mobile-first PWA to track meals and body symptoms, discover food 
 
 ### 1) Prerequisites
 - Node.js 20+
-- pnpm 10+
+- pnpm 10+ (or use `corepack pnpm ...` if pnpm is not globally installed)
 - PostgreSQL instance (local Docker or Supabase)
 
 ### 2) Install dependencies
@@ -36,6 +36,13 @@ pnpm install
 cp .env.example .env
 ```
 Update `DATABASE_URL` in `.env`.
+
+Example local URL (default):
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/afterbite"
+```
+
+If you don't have local Postgres running yet, use a free Supabase project and paste its connection string.
 
 ### 4) Prepare database
 ```bash
