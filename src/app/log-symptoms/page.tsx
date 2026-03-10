@@ -91,6 +91,8 @@ export default function LogSymptomsPage() {
     <main className="mx-auto min-h-dvh w-full max-w-md px-4 py-5">
       <PageHeader title="Log Symptoms" subtitle="Capture body feedback in under 10 seconds." />
 
+      <p className="mb-3 text-sm text-muted-foreground">Scale: 1 = none / good, 10 = severe / bad.</p>
+
       <section className="rounded-2xl border bg-card/80 p-4 shadow-sm backdrop-blur">
         <div className="mb-3 flex items-center gap-2 text-xs">
           <button
