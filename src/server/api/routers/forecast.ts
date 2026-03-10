@@ -65,5 +65,33 @@ export const forecastRouter = createTRPCRouter({
       score,
       confidence: logs.length >= 6 ? "high" : logs.length >= 2 ? "medium" : "low"
     };
+  }),
+  getWeeklyImpactSummary: protectedProcedure.query(async ({ ctx }) => {
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(today.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+
+    const logs = await ctx.db.symptomLog.findMany({
+      where: { userId: ctx.userId, loggedAt: { gte: start } },
+      include: { entries: true },
+      orderBy: { loggedAt: "asc" }
+    });
+
+    const days: Array<{ date: string; score: number | null }> = [];
+    for (let i = 0; i < 7; i += 1) {
+      const day = new Date(start);
+      day.setDate(start.getDate() + i);
+      const dayStart = new Date(day);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(day);
+      dayEnd.setHours(23, 59, 59, 999);
+      const dayLogs = logs.filter((log) => log.loggedAt >= dayStart && log.loggedAt <= dayEnd);
+      const vector = toSymptomVector(dayLogs.flatMap((log) => log.entries));
+      const score = dayLogs.length > 0 ? computeImpactScore(vector) : null;
+      days.push({ date: day.toISOString().slice(0, 10), score });
+    }
+
+    return { days };
   })
 });
