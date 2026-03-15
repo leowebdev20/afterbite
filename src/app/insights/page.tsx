@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { PageHeader } from "@/components/common/page-header";
 import { api } from "@/trpc/client";
 
 export default function InsightsPage() {
   const topTriggers = api.insight.getTopTriggers.useQuery();
   const unknownCulprits = api.insight.getUnknownCulprits.useQuery();
+  const recompute = api.insight.recomputeSnapshots.useMutation();
 
   return (
     <main className="mx-auto min-h-dvh w-full max-w-md px-4 py-5">
@@ -17,14 +19,25 @@ export default function InsightsPage() {
             <h2 className="text-lg font-semibold">Top negative triggers</h2>
             <p className="mt-1 text-sm text-muted-foreground">Foods most linked to worse symptoms in your logs.</p>
           </div>
-          <span className="rounded-full border bg-card/90 px-3 py-1 text-xs font-semibold text-muted-foreground">Watchlist</span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => recompute.mutate()}
+              className="rounded-full border bg-card/90 px-3 py-1 text-xs font-semibold text-muted-foreground"
+            >
+              {recompute.isPending ? "Recomputing..." : "Recompute"}
+            </button>
+            <span className="rounded-full border bg-card/90 px-3 py-1 text-xs font-semibold text-muted-foreground">Watchlist</span>
+          </div>
         </div>
         <ul className="mt-3 space-y-3">
           {(topTriggers.data ?? []).map((item) => (
             <li key={item.id} className="rounded-2xl border bg-card/90 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-base font-semibold">{item.ingredient.name}</p>
+                  <p className="text-base font-semibold">
+                    <Link href={`/ingredient/${item.ingredient.id}`}>{item.ingredient.name}</Link>
+                  </p>
                   <p className="mt-1 text-xs text-muted-foreground">Suggested action: reduce or isolate</p>
                 </div>
                 <div className="text-right">
@@ -62,7 +75,9 @@ export default function InsightsPage() {
           {(unknownCulprits.data ?? []).map((item) => (
             <li key={item.id} className="rounded-2xl border bg-card/90 p-4">
               <div className="flex items-center justify-between">
-                <p className="font-semibold">{item.name}</p>
+                <p className="font-semibold">
+                  <Link href={`/ingredient/${item.id}`}>{item.name}</Link>
+                </p>
                 <span className="rounded-full border bg-[hsl(35_100%_92%)] px-3 py-1 text-xs font-semibold text-[hsl(24_57%_26%)]">
                   suspicion {item.suspicion}
                 </span>

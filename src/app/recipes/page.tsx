@@ -59,7 +59,7 @@ export default function RecipesPage() {
   const onEditRecipe = (recipe: NonNullable<typeof recipes.data>[number]) => {
     setEditingId(recipe.id);
     setRecipeName(recipe.name);
-    setSelected(recipe.items.map((item) => ({ id: item.ingredientId, name: item.ingredient.name })));
+    setSelected(recipe.items.map((item) => ({ id: item.ingredient.id, name: item.ingredient.name })));
   };
 
   const onDeleteRecipe = async (id: string) => {

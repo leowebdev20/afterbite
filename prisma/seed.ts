@@ -9,6 +9,20 @@ async function main() {
     create: { id: "demo-user" }
   });
 
+  await prisma.userSettings.upsert({
+    where: { userId: user.id },
+    update: { timeZone: "Europe/Berlin", reminderTimes: ["09:00", "20:00"] },
+    create: {
+      userId: user.id,
+      timeZone: "Europe/Berlin",
+      reminderTimes: ["09:00", "20:00"],
+      age: 30,
+      heightCm: 175,
+      weightKg: 70,
+      caloriesGoal: 2000
+    }
+  });
+
   const ingredients = [
     "Wheat Flour",
     "Tomato",

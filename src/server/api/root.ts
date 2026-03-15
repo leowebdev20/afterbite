@@ -4,13 +4,15 @@ import { symptomRouter } from "@/server/api/routers/symptom";
 import { recipeRouter } from "@/server/api/routers/recipe";
 import { insightRouter } from "@/server/api/routers/insight";
 import { forecastRouter } from "@/server/api/routers/forecast";
+import { settingsRouter } from "@/server/api/routers/settings";
 
 export const appRouter = createTRPCRouter({
   meal: mealRouter,
   symptom: symptomRouter,
   recipe: recipeRouter,
   insight: insightRouter,
-  forecast: forecastRouter
+  forecast: forecastRouter,
+  settings: settingsRouter
 });
 
 export type AppRouter = typeof appRouter;

@@ -3,10 +3,15 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { db } from "@/server/db/client";
 
-export const createTRPCContext = async () => ({
-  db,
-  userId: "demo-user"
-});
+export const createTRPCContext = async () => {
+  const userId = "demo-user";
+  const settings = await db.userSettings.findUnique({ where: { userId } });
+  return {
+    db,
+    userId,
+    timeZone: settings?.timeZone ?? "UTC"
+  };
+};
 
 type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 

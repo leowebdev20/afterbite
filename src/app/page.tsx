@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import { BookOpen, Lightbulb, Soup, Stethoscope, BarChart3 } from "lucide-react";
+import { BookOpen, Lightbulb, Soup, Stethoscope, BarChart3, Settings } from "lucide-react";
 import { api } from "@/trpc/client";
 
 const links = [
@@ -21,7 +21,16 @@ export default function HomePage() {
   return (
     <main className="mx-auto min-h-dvh w-full max-w-md px-4 py-6">
       <section className="rounded-3xl border bg-card/85 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.12)] backdrop-blur">
-        <p className="text-center text-4xl font-semibold tracking-tight">Today&apos;s Impact</p>
+        <div className="flex items-start justify-between">
+          <p className="text-4xl font-semibold tracking-tight">Today&apos;s Impact</p>
+          <Link
+            href="/settings"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border bg-card/90 shadow-sm"
+            aria-label="Settings"
+          >
+            <Settings className="h-5 w-5 text-muted-foreground" />
+          </Link>
+        </div>
         <div
           className="mx-auto mt-4 grid h-44 w-44 place-items-center rounded-full"
           style={{

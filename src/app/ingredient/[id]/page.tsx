@@ -1,17 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useParams } from "next/navigation";
 import { PageHeader } from "@/components/common/page-header";
 import { api } from "@/trpc/client";
 
-export default function IngredientImpactPage({ params }: { params: Promise<{ id: string }> }) {
-  const [ingredientId, setIngredientId] = useMemo(() => {
-    let value = "";
-    params.then((p) => {
-      value = p.id;
-    });
-    return [value, () => {}] as const;
-  }, [params]);
+export default function IngredientImpactPage() {
+  const params = useParams<{ id: string }>();
+  const ingredientId = typeof params?.id === "string" ? params.id : "";
 
   const detail = api.insight.getIngredientDetail.useQuery(
     { ingredientId },

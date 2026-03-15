@@ -26,7 +26,8 @@ export default function SummaryPage() {
   const todaySymptoms = api.symptom.listTodaySymptoms.useQuery();
   const todayMeals = api.meal.listTodayMeals.useQuery();
 
-  const weekScores = (weekly.data?.days ?? []).map((d) => d.score).filter((s): s is number => s !== null);
+  const weekDays: Array<{ date: string; score: number | null }> = weekly.data?.days ?? [];
+  const weekScores = weekDays.map((d) => d.score).filter((s): s is number => s !== null);
   const avgImpact = weekScores.length ? weekScores.reduce((a, b) => a + b, 0) / weekScores.length : null;
 
   return (
@@ -53,7 +54,7 @@ export default function SummaryPage() {
           </span>
         </div>
         <div className="mt-4 grid grid-cols-7 gap-2">
-          {(weekly.data?.days ?? []).map((day) => {
+          {weekDays.map((day) => {
             const height = day.score !== null ? Math.max(18, day.score * 7.2) : 18;
             return (
               <div key={day.date} className="flex flex-col items-center gap-2">

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { toConfidence } from "@/server/services/correlations/calculate";
+import { TRPCError } from "@trpc/server";
 
 export const recipeRouter = createTRPCRouter({
   createRecipe: protectedProcedure
@@ -8,6 +9,13 @@ export const recipeRouter = createTRPCRouter({
       z.object({
         name: z.string().min(1),
         ingredientIds: z.array(z.string()).min(1)
+      })
+    )
+    .output(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        items: z.array(z.object({ ingredient: z.object({ id: z.string(), name: z.string() }) }))
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -19,7 +27,11 @@ export const recipeRouter = createTRPCRouter({
             create: input.ingredientIds.map((ingredientId) => ({ ingredientId }))
           }
         },
-        include: { items: { include: { ingredient: true } } }
+        select: {
+          id: true,
+          name: true,
+          items: { select: { ingredient: { select: { id: true, name: true } } } }
+        }
       });
     }),
   updateRecipe: protectedProcedure
@@ -28,6 +40,13 @@ export const recipeRouter = createTRPCRouter({
         id: z.string(),
         name: z.string().min(1),
         ingredientIds: z.array(z.string()).min(1)
+      })
+    )
+    .output(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        items: z.array(z.object({ ingredient: z.object({ id: z.string(), name: z.string() }) }))
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -40,16 +59,38 @@ export const recipeRouter = createTRPCRouter({
             create: input.ingredientIds.map((ingredientId) => ({ ingredientId }))
           }
         },
-        include: { items: { include: { ingredient: true } } }
+        select: {
+          id: true,
+          name: true,
+          items: { select: { ingredient: { select: { id: true, name: true } } } }
+        }
       });
     }),
   deleteRecipe: protectedProcedure
     .input(z.object({ id: z.string() }))
+    .output(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.recipe.delete({ where: { id: input.id, userId: ctx.userId } });
+      const recipe = await ctx.db.recipe.findFirst({
+        where: { id: input.id, userId: ctx.userId },
+        select: { id: true }
+      });
+
+      if (!recipe) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Recipe not found" });
+      }
+
+      return ctx.db.recipe.delete({ where: { id: recipe.id }, select: { id: true } });
     }),
   predictRecipeImpact: protectedProcedure
     .input(z.object({ ingredientIds: z.array(z.string()).min(1) }))
+    .output(
+      z.object({
+        score: z.number().nullable(),
+        confidence: z.enum(["low", "medium", "high"]),
+        knownCount: z.number(),
+        totalCount: z.number()
+      })
+    )
     .query(async ({ ctx, input }) => {
       const snapshots = await ctx.db.ingredientImpactSnapshot.findMany({
         where: { userId: ctx.userId, ingredientId: { in: input.ingredientIds } },
@@ -84,10 +125,28 @@ export const recipeRouter = createTRPCRouter({
         totalCount
       };
     }),
-  listRecipes: protectedProcedure.query(async ({ ctx }) => {
+  listRecipes: protectedProcedure
+    .output(
+      z.array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          items: z.array(
+            z.object({
+              ingredient: z.object({ id: z.string(), name: z.string() })
+            })
+          )
+        })
+      )
+    )
+    .query(async ({ ctx }) => {
     return ctx.db.recipe.findMany({
       where: { userId: ctx.userId },
-      include: { items: { include: { ingredient: true } } },
+      select: {
+        id: true,
+        name: true,
+        items: { select: { ingredient: { select: { id: true, name: true } } } }
+      },
       orderBy: { updatedAt: "desc" }
     });
   })
