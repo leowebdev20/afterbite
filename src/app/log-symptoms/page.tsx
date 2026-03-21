@@ -88,31 +88,31 @@ export default function LogSymptomsPage() {
   };
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-md px-4 py-5">
+    <main className="min-h-dvh px-2 py-3">
       <PageHeader title="Log Symptoms" subtitle="Capture body feedback in under 10 seconds." />
 
-      <p className="mb-3 text-sm text-muted-foreground">Scale: 1 = none / good, 10 = severe / bad.</p>
+      <p className="mb-3 text-sm text-muted-foreground">Scale: 1 = low symptom (better), 10 = high symptom (worse).</p>
 
-      <section className="rounded-2xl border bg-card/80 p-4 shadow-sm backdrop-blur">
+      <section className="rounded-[2rem] border bg-white/95 p-4 shadow-[0_10px_30px_rgba(75,94,140,0.16)] ">
         <div className="mb-3 flex items-center gap-2 text-xs">
           <button
             type="button"
             onClick={() => applyPreset("good")}
-            className="rounded-full border bg-[hsl(153_53%_89%)] px-3 py-1 text-[hsl(154_55%_21%)]"
+            className="rounded-full border bg-[hsl(153_53%_89%)] px-3 py-1 font-semibold text-[hsl(154_55%_21%)]"
           >
             Feeling good
           </button>
           <button
             type="button"
             onClick={() => applyPreset("neutral")}
-            className="rounded-full border bg-[hsl(210_35%_96%)] px-3 py-1 text-[hsl(217_22%_28%)]"
+            className="rounded-full border bg-[hsl(210_35%_96%)] px-3 py-1 font-semibold text-[hsl(217_22%_28%)]"
           >
             Neutral
           </button>
           <button
             type="button"
             onClick={() => applyPreset("bad")}
-            className="rounded-full border bg-[hsl(19_93%_90%)] px-3 py-1 text-[hsl(17_57%_26%)]"
+            className="rounded-full border bg-[hsl(19_93%_90%)] px-3 py-1 font-semibold text-[hsl(17_57%_26%)]"
           >
             Feeling bad
           </button>
@@ -123,7 +123,7 @@ export default function LogSymptomsPage() {
             <label key={symptom.key} className="block">
               <div className="mb-1 flex items-center justify-between text-sm">
                 <span>{symptom.label}</span>
-                <span className="text-muted-foreground">{values[symptom.key]}</span>
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-foreground">{values[symptom.key]}</span>
               </div>
               <input
                 type="range"
@@ -135,7 +135,7 @@ export default function LogSymptomsPage() {
                   const next = Number(event.target.value);
                   setValues((prev) => ({ ...prev, [symptom.key]: next }));
                 }}
-                className="h-2 w-full cursor-pointer appearance-none rounded-full bg-muted"
+                className="h-2.5 w-full cursor-pointer appearance-none rounded-full bg-muted"
               />
             </label>
           ))}
@@ -145,23 +145,27 @@ export default function LogSymptomsPage() {
           type="button"
           onClick={onSave}
           disabled={saveSymptoms.isPending || !touched}
-          className="mt-4 w-full rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
+          className="mt-4 w-full rounded-full bg-[linear-gradient(135deg,hsl(148_70%_41%),hsl(162_78%_37%))] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
         >
           {saveSymptoms.isPending ? "Saving..." : "Save Symptoms"}
         </button>
       </section>
 
-      <section className="mt-5">
+      <section className="mt-4 rounded-[2rem] border bg-white/95 p-4 shadow-[0_10px_30px_rgba(75,94,140,0.16)] ">
         <h2 className="text-lg font-semibold">Today&apos;s symptom logs</h2>
-        <ul className="mt-2 space-y-2">
+        <ul className="mt-3 space-y-2">
           {(todaySymptoms.data ?? []).map((log) => (
-            <li key={log.id} className="rounded-xl border bg-card/70 p-3">
+            <li key={log.id} className="rounded-2xl border bg-white/92 p-3">
               <p className="text-xs text-muted-foreground">
                 {new Date(log.loggedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {log.entries.map((entry) => `${entry.symptom}: ${entry.severity}`).join(" · ")}
-              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {log.entries.map((entry) => (
+                  <span key={entry.id} className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-foreground">
+                    {entry.symptom}: {entry.severity}
+                  </span>
+                ))}
+              </div>
             </li>
           ))}
           {(todaySymptoms.data?.length ?? 0) === 0 ? (

@@ -50,6 +50,7 @@ pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
 ```
+`db:seed` inserts realistic sample history (last 7 days meals/symptoms + recipes + impact snapshots) so the app is immediately populated for UI testing.
 
 ### 5) Run development server
 ```bash
@@ -69,7 +70,7 @@ Open `http://localhost:3000`.
 - `pnpm db:generate`: Prisma client generation
 - `pnpm db:migrate`: create/apply migration in dev
 - `pnpm db:push`: push schema without migration files
-- `pnpm db:seed`: seed demo user + ingredient catalog
+- `pnpm db:seed`: seed demo user + realistic sample history
 - `pnpm db:security:rls`: enable+enforce RLS and block `anon/authenticated` table access in Supabase `public` schema
 
 ## Supabase Security (RLS Alert Fix)

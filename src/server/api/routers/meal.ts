@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
+const mealTypeSchema = z.enum(["BREAKFAST", "LUNCH", "DINNER", "SNACK", "OTHER"]);
+
+const mealItemInputSchema = z.object({
+  ingredientId: z.string(),
+  quantity: z.number().positive().max(5000).optional().nullable()
+});
+
 export const mealRouter = createTRPCRouter({
   searchIngredients: protectedProcedure
     .input(z.object({ query: z.string().min(1).max(50) }))
@@ -32,23 +39,37 @@ export const mealRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string().min(1),
-        ingredientIds: z.array(z.string()).min(1)
+        mealType: mealTypeSchema.optional(),
+        ingredientIds: z.array(z.string()).min(1).optional(),
+        items: z.array(mealItemInputSchema).min(1).optional()
+      }).refine((value) => (value.items?.length ?? 0) > 0 || (value.ingredientIds?.length ?? 0) > 0, {
+        message: "At least one ingredient is required."
       })
     )
     .output(
       z.object({
         id: z.string(),
         name: z.string(),
+        mealType: mealTypeSchema,
         eatenAt: z.date()
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const itemInputs =
+        input.items?.map((item) => ({
+          ingredientId: item.ingredientId,
+          quantity: item.quantity ?? null
+        })) ??
+        input.ingredientIds?.map((ingredientId) => ({ ingredientId, quantity: null })) ??
+        [];
+
       return ctx.db.meal.create({
         data: {
           userId: ctx.userId,
           name: input.name,
+          mealType: input.mealType ?? "OTHER",
           items: {
-            create: input.ingredientIds.map((ingredientId) => ({ ingredientId }))
+            create: itemInputs
           }
         }
       });
@@ -59,9 +80,11 @@ export const mealRouter = createTRPCRouter({
         z.object({
           id: z.string(),
           name: z.string(),
+          mealType: mealTypeSchema,
           eatenAt: z.date(),
           items: z.array(
             z.object({
+              quantity: z.number().nullable(),
               ingredient: z.object({ name: z.string() })
             })
           )
@@ -77,8 +100,9 @@ export const mealRouter = createTRPCRouter({
         select: {
           id: true,
           name: true,
+          mealType: true,
           eatenAt: true,
-          items: { select: { ingredient: { select: { name: true } } } }
+          items: { select: { quantity: true, ingredient: { select: { name: true } } } }
         },
         orderBy: { eatenAt: "desc" }
       });

@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --background: 210 35% 97%;
-  --foreground: 222 35% 14%;
+  --background: 230 24% 95%;
+  --foreground: 226 28% 15%;
   --card: 0 0% 100%;
-  --card-foreground: 222 35% 14%;
-  --border: 216 23% 84%;
-  --muted: 214 31% 93%;
-  --muted-foreground: 217 16% 38%;
-  --primary: 196 83% 38%;
+  --card-foreground: 226 28% 15%;
+  --border: 226 24% 78%;
+  --muted: 223 27% 92%;
+  --muted-foreground: 224 18% 34%;
+  --primary: 241 42% 55%;
   --primary-foreground: 0 0% 100%;
-  --accent: 34 100% 92%;
-  --accent-foreground: 28 56% 23%;
-  --radius: 0.8rem;
+  --accent: 153 45% 92%;
+  --accent-foreground: 158 50% 24%;
+  --radius: 1rem;
 }
 
 * {
@@ -23,10 +23,10 @@
 
 body {
   background:
-    radial-gradient(circle at 8% -12%, hsl(190 82% 80% / 0.52), transparent 35%),
-    radial-gradient(circle at 88% 0%, hsl(26 95% 79% / 0.35), transparent 28%),
-    radial-gradient(circle at 50% 120%, hsl(262 76% 88% / 0.25), transparent 40%),
-    linear-gradient(180deg, hsl(var(--background)) 0%, hsl(206 42% 95%) 100%);
+    radial-gradient(circle at 5% -10%, hsl(153 55% 81% / 0.58), transparent 36%),
+    radial-gradient(circle at 96% 0%, hsl(246 70% 87% / 0.48), transparent 40%),
+    radial-gradient(circle at 45% 120%, hsl(194 68% 83% / 0.36), transparent 43%),
+    linear-gradient(180deg, hsl(var(--background)) 0%, hsl(218 40% 94%) 100%);
   color: hsl(var(--foreground));
   min-height: 100dvh;
 }

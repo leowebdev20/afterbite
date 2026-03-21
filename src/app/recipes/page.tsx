@@ -68,17 +68,17 @@ export default function RecipesPage() {
   };
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-md px-4 py-5">
+    <main className="min-h-dvh px-2 py-3">
       <PageHeader title="Recipe Builder" subtitle="Create recipes and preview their predicted impact." />
 
       <form
         onSubmit={onSubmit}
-        className="space-y-4 rounded-3xl border bg-card/85 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.12)] backdrop-blur"
+        className="space-y-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] "
       >
         <label className="block text-sm">
           <span className="mb-1 block text-lg font-medium">Recipe name</span>
           <input
-            className="w-full rounded-2xl border bg-background/80 px-4 py-3 text-lg outline-none ring-primary/30 focus:ring-2"
+            className="w-full rounded-2xl border bg-background/85 px-4 py-3 text-base outline-none ring-primary/30 focus:ring-2"
             placeholder="Example: Homemade Pasta"
             value={recipeName}
             onChange={(e) => setRecipeName(e.target.value)}
@@ -89,7 +89,7 @@ export default function RecipesPage() {
         <label className="block text-sm">
           <span className="mb-1 block text-lg font-medium">Search ingredients</span>
           <input
-            className="w-full rounded-2xl border bg-background/80 px-4 py-3 text-lg outline-none ring-primary/30 focus:ring-2"
+            className="w-full rounded-2xl border bg-background/85 px-4 py-3 text-base outline-none ring-primary/30 focus:ring-2"
             placeholder="Type wheat, eggs, olive oil..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -97,7 +97,7 @@ export default function RecipesPage() {
         </label>
 
         {query.trim().length > 0 && (
-          <div className="rounded-2xl border bg-background/80 p-2">
+          <div className="rounded-2xl border bg-background/85 p-2 shadow-sm">
             <ul className="space-y-1">
               {(ingredientQuery.data ?? []).map((ingredient) => (
                 <li key={ingredient.id}>
@@ -136,7 +136,7 @@ export default function RecipesPage() {
           ))}
         </div>
 
-        <div className="rounded-2xl border bg-card/90 p-4">
+        <div className="rounded-3xl border bg-white/92 p-4">
           <p className="text-sm text-muted-foreground">Predicted impact</p>
           <div className="mt-1 flex items-center gap-2">
             <span className="text-2xl font-semibold">
@@ -158,7 +158,7 @@ export default function RecipesPage() {
           <button
             type="submit"
             disabled={createRecipe.isPending || updateRecipe.isPending || ingredientIds.length === 0}
-            className="flex-1 rounded-full bg-[hsl(150_42%_59%)] px-4 py-3 text-lg font-semibold text-white disabled:opacity-60"
+            className="flex-1 rounded-full bg-[linear-gradient(135deg,hsl(246_38%_61%),hsl(222_63%_59%))] px-4 py-3 text-base font-semibold text-white disabled:opacity-60"
           >
             {editingId ? "Update Recipe" : "Save Recipe"}
           </button>
@@ -178,11 +178,11 @@ export default function RecipesPage() {
         </div>
       </form>
 
-      <section className="mt-6">
-        <h2 className="text-2xl font-semibold">Saved recipes</h2>
+      <section className="mt-4 rounded-[2rem] border bg-white/95 p-4 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
+        <h2 className="text-xl font-semibold">Saved recipes</h2>
         <ul className="mt-2 space-y-2">
           {(recipes.data ?? []).map((recipe) => (
-            <li key={recipe.id} className="rounded-2xl border bg-card/85 p-4 shadow-[0_8px_20px_rgba(78,98,125,0.10)]">
+            <li key={recipe.id} className="rounded-3xl border bg-white/92 p-4 shadow-[0_8px_20px_rgba(78,98,125,0.10)]">
               <div className="flex items-center justify-between">
                 <p className="font-semibold">{recipe.name}</p>
                 <div className="flex gap-2">

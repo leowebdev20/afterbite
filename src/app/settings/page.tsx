@@ -81,10 +81,10 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-md px-4 py-5">
+    <main className="min-h-dvh px-2 py-3">
       <PageHeader title="Settings" subtitle="Personalize how AfterBite interprets your logs." />
 
-      <section className="rounded-3xl border bg-card/85 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.12)] backdrop-blur">
+      <section className="rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
         <label className="block text-sm">
           <span className="mb-2 block text-lg font-medium">Time zone</span>
           <select
@@ -101,7 +101,7 @@ export default function SettingsPage() {
         </label>
       </section>
 
-      <section className="mt-4 rounded-3xl border bg-card/85 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.12)] backdrop-blur">
+      <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
         <h2 className="text-lg font-semibold">Reminders</h2>
         <p className="mt-1 text-sm text-muted-foreground">Choose 1–2 daily times to log meals or symptoms.</p>
         <div className="mt-3 grid grid-cols-2 gap-3">
@@ -126,7 +126,7 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="mt-4 rounded-3xl border bg-card/85 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.12)] backdrop-blur">
+      <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
         <h2 className="text-lg font-semibold">Profile info</h2>
         <div className="mt-3 grid grid-cols-2 gap-3">
           <label className="text-sm">
@@ -168,26 +168,26 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="mt-4 rounded-3xl border bg-card/85 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.12)] backdrop-blur">
+      <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
         <button
           type="button"
           onClick={onSave}
           disabled={saveState === "saving"}
-          className="w-full rounded-full bg-[hsl(150_42%_59%)] px-4 py-3 text-base font-semibold text-white"
+          className="w-full rounded-full bg-[linear-gradient(135deg,hsl(246_38%_61%),hsl(222_63%_59%))] px-4 py-3 text-base font-semibold text-white"
         >
           {saveState === "saving" ? "Saving..." : "Save Settings"}
         </button>
       </section>
 
       {saveState !== "idle" ? (
-        <div className="fixed bottom-5 left-1/2 z-50 w-[90%] max-w-md -translate-x-1/2 rounded-2xl border bg-card/95 px-4 py-3 text-center text-sm shadow-[0_12px_30px_rgba(78,98,125,0.20)]">
+        <div className="fixed bottom-24 left-1/2 z-50 w-[90%] max-w-md -translate-x-1/2 rounded-2xl border bg-card/95 px-4 py-3 text-center text-sm shadow-[0_12px_30px_rgba(78,98,125,0.20)]">
           {saveState === "saving" ? "Saving settings..." : null}
           {saveState === "saved" ? "Settings saved" : null}
           {saveState === "error" ? "Save failed. Try again." : null}
         </div>
       ) : null}
 
-      <section className="mt-4 rounded-3xl border bg-card/85 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.12)] backdrop-blur">
+      <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
         <h2 className="text-lg font-semibold">Data</h2>
         <div className="mt-3 flex gap-2">
           <button type="button" onClick={onExport} className="flex-1 rounded-full border px-4 py-2 text-sm font-semibold">
