@@ -15,7 +15,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:security:rls": "prisma db execute --file prisma/security/enable_rls.sql --schema prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^6.5.0",

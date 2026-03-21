@@ -70,6 +70,23 @@ Open `http://localhost:3000`.
 - `pnpm db:migrate`: create/apply migration in dev
 - `pnpm db:push`: push schema without migration files
 - `pnpm db:seed`: seed demo user + ingredient catalog
+- `pnpm db:security:rls`: enable+enforce RLS and block `anon/authenticated` table access in Supabase `public` schema
+
+## Supabase Security (RLS Alert Fix)
+If Supabase warns with `rls_disabled_in_public`, run:
+
+```bash
+pnpm db:security:rls
+```
+
+This executes [`prisma/security/enable_rls.sql`](/Users/leonardo/Documents/coding/afterbite/prisma/security/enable_rls.sql), which:
+- enables RLS on all app tables
+- forces RLS
+- adds deny policies for `anon` and `authenticated`
+- revokes direct grants for those roles
+
+This is correct for the current architecture (server-side Prisma).  
+When you later add Supabase client-side auth access, replace deny policies with user-scoped policies.
 
 ## Current App Routes (Scaffold)
 - `/`: Home dashboard (live daily score query)
