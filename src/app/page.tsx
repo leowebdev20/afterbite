@@ -17,6 +17,12 @@ export default function HomePage() {
   const todayMeals = api.meal.listTodayMeals.useQuery();
   const todaySymptoms = api.symptom.listTodaySymptoms.useQuery();
   const topTriggers = api.insight.getTopTriggers.useQuery();
+  const hasError = Boolean(
+    daily.error || tomorrow.error || todayMeals.error || todaySymptoms.error || topTriggers.error
+  );
+  const isLoading = Boolean(
+    daily.isLoading || tomorrow.isLoading || todayMeals.isLoading || todaySymptoms.isLoading || topTriggers.isLoading
+  );
 
   const score = daily.data?.score ?? 0;
   const circle = Math.max(0, Math.min(100, score * 10));
@@ -48,6 +54,12 @@ export default function HomePage() {
             {daily.data?.confidence ?? "low"} confidence
           </span>
         </div>
+        {hasError ? (
+          <p className="mt-3 rounded-2xl border bg-white/92 px-3 py-2 text-sm text-[hsl(356_62%_40%)]">
+            Some dashboard data failed to load. Pull to refresh or try again shortly.
+          </p>
+        ) : null}
+        {isLoading ? <p className="mt-3 text-sm text-muted-foreground">Loading your latest data...</p> : null}
         <div className="mt-4 flex items-center gap-4">
           <div
             className="grid h-28 w-28 place-items-center rounded-full"
@@ -77,34 +89,50 @@ export default function HomePage() {
       </section>
 
       <section className="mt-3 grid grid-cols-2 gap-3">
-        <article className="rounded-3xl border bg-card/85 p-4 shadow-[0_8px_20px_rgba(75,94,140,0.12)]">
+        <Link
+          href="/log-meal"
+          className="rounded-3xl border bg-card/85 p-4 shadow-[0_8px_20px_rgba(75,94,140,0.12)] transition-transform active:scale-[0.99]"
+          aria-label="Open meal logging"
+        >
           <div className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[hsl(154_45%_90%)]">
             <Utensils className="h-4 w-4 text-[hsl(158_58%_28%)]" />
           </div>
           <p className="mt-3 text-3xl font-semibold">{mealsCount}</p>
           <p className="text-sm text-muted-foreground">Meals logged today</p>
-        </article>
-        <article className="rounded-3xl border bg-card/85 p-4 shadow-[0_8px_20px_rgba(75,94,140,0.12)]">
+        </Link>
+        <Link
+          href="/log-symptoms"
+          className="rounded-3xl border bg-card/85 p-4 shadow-[0_8px_20px_rgba(75,94,140,0.12)] transition-transform active:scale-[0.99]"
+          aria-label="Open symptom logging"
+        >
           <div className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[hsl(190_58%_90%)]">
             <Activity className="h-4 w-4 text-[hsl(197_70%_37%)]" />
           </div>
           <p className="mt-3 text-3xl font-semibold">{symptomCount}</p>
           <p className="text-sm text-muted-foreground">Symptom logs today</p>
-        </article>
-        <article className="rounded-3xl border bg-card/85 p-4 shadow-[0_8px_20px_rgba(75,94,140,0.12)]">
+        </Link>
+        <Link
+          href="/insights"
+          className="rounded-3xl border bg-card/85 p-4 shadow-[0_8px_20px_rgba(75,94,140,0.12)] transition-transform active:scale-[0.99]"
+          aria-label="Open food impact insights"
+        >
           <div className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[hsl(355_55%_92%)]">
             <TriangleAlert className="h-4 w-4 text-[hsl(354_62%_43%)]" />
           </div>
           <p className="mt-3 text-3xl font-semibold">{triggerCount}</p>
           <p className="text-sm text-muted-foreground">Foods to watch</p>
-        </article>
-        <article className="rounded-3xl border bg-card/85 p-4 shadow-[0_8px_20px_rgba(75,94,140,0.12)]">
+        </Link>
+        <Link
+          href="/summary"
+          className="rounded-3xl border bg-card/85 p-4 shadow-[0_8px_20px_rgba(75,94,140,0.12)] transition-transform active:scale-[0.99]"
+          aria-label="Open daily summary"
+        >
           <div className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[hsl(245_62%_91%)]">
             <Sparkles className="h-4 w-4 text-[hsl(245_44%_47%)]" />
           </div>
           <p className="mt-3 text-3xl font-semibold">{tomorrow.data?.impactScore ?? "--"}</p>
           <p className="text-sm text-muted-foreground">Tomorrow predicted impact</p>
-        </article>
+        </Link>
       </section>
 
       <section className="mt-3 grid grid-cols-2 gap-3">
@@ -126,11 +154,21 @@ export default function HomePage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold">Recent meals</h2>
-            <p className="text-sm text-muted-foreground">Tap to continue tracking</p>
+            <p className="text-sm text-muted-foreground">Tap a meal below to log related symptoms</p>
           </div>
           <Clock3 className="h-5 w-5 text-muted-foreground" />
         </div>
         <ul className="mt-3 space-y-2">
+          {todayMeals.isLoading ? (
+            <li className="rounded-2xl border bg-white/92 px-3 py-4 text-sm text-muted-foreground">
+              Loading recent meals...
+            </li>
+          ) : null}
+          {todayMeals.error ? (
+            <li className="rounded-2xl border bg-white/92 px-3 py-4 text-sm text-[hsl(356_62%_40%)]">
+              Could not load recent meals.
+            </li>
+          ) : null}
           {(todayMeals.data ?? []).slice(0, 4).map((meal) => (
             <li key={meal.id}>
               <Link
@@ -151,7 +189,7 @@ export default function HomePage() {
               </Link>
             </li>
           ))}
-          {(todayMeals.data?.length ?? 0) === 0 ? (
+          {!todayMeals.isLoading && !todayMeals.error && (todayMeals.data?.length ?? 0) === 0 ? (
             <li className="rounded-2xl border bg-white/92 px-3 py-4 text-sm text-muted-foreground">
               No meals yet today. Use the center + button to log your first one.
             </li>

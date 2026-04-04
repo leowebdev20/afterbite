@@ -68,3 +68,47 @@ export function getTodayKey(timeZone: string): string {
 export function addDaysFromKey(dayKey: string, days: number): string {
   return addDaysToKey(dayKey, days);
 }
+
+function getOffsetMinutes(at: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "shortOffset",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(at);
+
+  const tzPart = parts.find((part) => part.type === "timeZoneName")?.value ?? "GMT+00";
+  const match = tzPart.match(/GMT([+-]\d{1,2})(?::?(\d{2}))?/);
+  if (!match) return 0;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2] ?? "0");
+  const sign = hours >= 0 ? 1 : -1;
+  return hours * 60 + sign * minutes;
+}
+
+export function dayKeyToUtcRange(dayKey: string, timeZone: string): { start: Date; end: Date } {
+  const [year, month, day] = dayKey.split("-").map(Number);
+  const nextKey = addDaysToKey(dayKey, 1);
+
+  let startMs = Date.UTC(year, month - 1, day, 0, 0, 0, 0);
+  for (let i = 0; i < 3; i += 1) {
+    const offsetMinutes = getOffsetMinutes(new Date(startMs), timeZone);
+    startMs = Date.UTC(year, month - 1, day, 0, 0, 0, 0) - offsetMinutes * 60_000;
+  }
+
+  const [nextYear, nextMonth, nextDay] = nextKey.split("-").map(Number);
+  let endMs = Date.UTC(nextYear, nextMonth - 1, nextDay, 0, 0, 0, 0);
+  for (let i = 0; i < 3; i += 1) {
+    const offsetMinutes = getOffsetMinutes(new Date(endMs), timeZone);
+    endMs = Date.UTC(nextYear, nextMonth - 1, nextDay, 0, 0, 0, 0) - offsetMinutes * 60_000;
+  }
+
+  return { start: new Date(startMs), end: new Date(endMs) };
+}
+
+export function getTodayUtcRange(timeZone: string): { start: Date; end: Date } {
+  const today = getTodayKey(timeZone);
+  return dayKeyToUtcRange(today, timeZone);
+}

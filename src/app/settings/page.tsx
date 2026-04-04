@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { PageHeader } from "@/components/common/page-header";
 import { api } from "@/trpc/client";
 
@@ -17,6 +18,8 @@ const FALLBACK_TIMEZONES = [
 export default function SettingsPage() {
   const settings = api.settings.getSettings.useQuery();
   const updateTimeZone = api.settings.updateTimeZone.useMutation();
+  const updateReminderTimes = api.settings.updateReminderTimes.useMutation();
+  const updateProfile = api.settings.updateProfile.useMutation();
   const exportData = api.settings.exportData.useQuery(undefined, { enabled: false });
   const deleteAll = api.settings.deleteAllData.useMutation();
   const [timeZones, setTimeZones] = useState<string[]>(FALLBACK_TIMEZONES);
@@ -53,14 +56,20 @@ export default function SettingsPage() {
     setSaveState("saving");
     const reminderTimes = [reminder1, reminder2].filter(Boolean);
     try {
-      await updateTimeZone.mutateAsync({
-        timeZone: value,
-        reminderTimes,
-        age: age ? Number(age) : null,
-        heightCm: height ? Number(height) : null,
-        weightKg: weight ? Number(weight) : null,
-        caloriesGoal: calories ? Number(calories) : null
-      });
+      await Promise.all([
+        updateTimeZone.mutateAsync({
+          timeZone: value
+        }),
+        updateReminderTimes.mutateAsync({
+          reminderTimes
+        }),
+        updateProfile.mutateAsync({
+          age: age ? Number(age) : null,
+          heightCm: height ? Number(height) : null,
+          weightKg: weight ? Number(weight) : null,
+          caloriesGoal: calories ? Number(calories) : null
+        })
+      ]);
       await settings.refetch();
       setSaveState("saved");
       setTimeout(() => setSaveState("idle"), 2000);
@@ -172,7 +181,12 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={onSave}
-          disabled={saveState === "saving"}
+          disabled={
+            saveState === "saving" ||
+            updateTimeZone.isPending ||
+            updateReminderTimes.isPending ||
+            updateProfile.isPending
+          }
           className="w-full rounded-full bg-[linear-gradient(135deg,hsl(246_38%_61%),hsl(222_63%_59%))] px-4 py-3 text-base font-semibold text-white"
         >
           {saveState === "saving" ? "Saving..." : "Save Settings"}
@@ -204,6 +218,21 @@ export default function SettingsPage() {
             value={exportJson}
           />
         ) : null}
+      </section>
+
+      <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
+        <h2 className="text-lg font-semibold">Legal and safety</h2>
+        <div className="mt-3 grid grid-cols-1 gap-2 text-sm">
+          <Link className="rounded-2xl border bg-background/70 px-3 py-2" href="/privacy">
+            Privacy Policy
+          </Link>
+          <Link className="rounded-2xl border bg-background/70 px-3 py-2" href="/terms">
+            Terms of Use
+          </Link>
+          <Link className="rounded-2xl border bg-background/70 px-3 py-2" href="/medical-disclaimer">
+            Medical Disclaimer
+          </Link>
+        </div>
       </section>
     </main>
   );

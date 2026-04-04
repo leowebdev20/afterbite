@@ -1,11 +1,27 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import {
+  mealDateRangeSchema,
+  mealTypeSchema,
+  quickAddMealInputSchema,
+  updateMealInputSchema
+} from "@/server/schemas/meal";
+import { TRPCError } from "@trpc/server";
+import { getTodayUtcRange } from "@/server/services/timezone";
 
-const mealTypeSchema = z.enum(["BREAKFAST", "LUNCH", "DINNER", "SNACK", "OTHER"]);
-
-const mealItemInputSchema = z.object({
-  ingredientId: z.string(),
-  quantity: z.number().positive().max(5000).optional().nullable()
+const mealOutputSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  mealType: mealTypeSchema,
+  eatenAt: z.date(),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      ingredientId: z.string(),
+      quantity: z.number().nullable(),
+      ingredient: z.object({ id: z.string(), name: z.string() })
+    })
+  )
 });
 
 export const mealRouter = createTRPCRouter({
@@ -36,16 +52,7 @@ export const mealRouter = createTRPCRouter({
       });
     }),
   quickAddMeal: protectedProcedure
-    .input(
-      z.object({
-        name: z.string().min(1),
-        mealType: mealTypeSchema.optional(),
-        ingredientIds: z.array(z.string()).min(1).optional(),
-        items: z.array(mealItemInputSchema).min(1).optional()
-      }).refine((value) => (value.items?.length ?? 0) > 0 || (value.ingredientIds?.length ?? 0) > 0, {
-        message: "At least one ingredient is required."
-      })
-    )
+    .input(quickAddMealInputSchema)
     .output(
       z.object({
         id: z.string(),
@@ -66,43 +73,132 @@ export const mealRouter = createTRPCRouter({
       return ctx.db.meal.create({
         data: {
           userId: ctx.userId,
-          name: input.name,
+          name: input.name.trim(),
           mealType: input.mealType ?? "OTHER",
+          eatenAt: input.eatenAt ?? new Date(),
           items: {
             create: itemInputs
           }
         }
       });
     }),
-  listTodayMeals: protectedProcedure
+  updateMeal: protectedProcedure
+    .input(updateMealInputSchema)
     .output(
-      z.array(
-        z.object({
-          id: z.string(),
-          name: z.string(),
-          mealType: mealTypeSchema,
-          eatenAt: z.date(),
-          items: z.array(
-            z.object({
-              quantity: z.number().nullable(),
-              ingredient: z.object({ name: z.string() })
-            })
-          )
-        })
-      )
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        mealType: mealTypeSchema,
+        eatenAt: z.date()
+      })
     )
-    .query(async ({ ctx }) => {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
+    .mutation(async ({ ctx, input }) => {
+      const meal = await ctx.db.meal.findFirst({
+        where: { id: input.id, userId: ctx.userId },
+        select: { id: true }
+      });
+      if (!meal) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Meal not found" });
+      }
+
+      const itemInputs =
+        input.items?.map((item) => ({
+          ingredientId: item.ingredientId,
+          quantity: item.quantity ?? null
+        })) ??
+        input.ingredientIds?.map((ingredientId) => ({ ingredientId, quantity: null })) ??
+        [];
+
+      return ctx.db.meal.update({
+        where: { id: meal.id },
+        data: {
+          name: input.name.trim(),
+          mealType: input.mealType ?? "OTHER",
+          eatenAt: input.eatenAt ?? new Date(),
+          items: {
+            deleteMany: {},
+            create: itemInputs
+          }
+        },
+        select: {
+          id: true,
+          name: true,
+          mealType: true,
+          eatenAt: true
+        }
+      });
+    }),
+  deleteMeal: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .output(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const meal = await ctx.db.meal.findFirst({
+        where: { id: input.id, userId: ctx.userId },
+        select: { id: true }
+      });
+      if (!meal) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Meal not found" });
+      }
+
+      return ctx.db.meal.delete({ where: { id: meal.id }, select: { id: true } });
+    }),
+  listMeals: protectedProcedure
+    .input(mealDateRangeSchema.optional())
+    .output(z.array(mealOutputSchema))
+    .query(async ({ ctx, input }) => {
+      const limit = input?.limit ?? 50;
+      const where = {
+        userId: ctx.userId,
+        ...(input?.from || input?.to
+          ? {
+              eatenAt: {
+                ...(input.from ? { gte: input.from } : {}),
+                ...(input.to ? { lte: input.to } : {})
+              }
+            }
+          : {})
+      };
 
       return ctx.db.meal.findMany({
-        where: { userId: ctx.userId, eatenAt: { gte: start } },
+        where,
         select: {
           id: true,
           name: true,
           mealType: true,
           eatenAt: true,
-          items: { select: { quantity: true, ingredient: { select: { name: true } } } }
+          items: {
+            select: {
+              id: true,
+              ingredientId: true,
+              quantity: true,
+              ingredient: { select: { id: true, name: true } }
+            }
+          }
+        },
+        orderBy: { eatenAt: "desc" },
+        take: limit
+      });
+    }),
+  listTodayMeals: protectedProcedure
+    .output(z.array(mealOutputSchema))
+    .query(async ({ ctx }) => {
+      const { start, end } = getTodayUtcRange(ctx.timeZone);
+
+      return ctx.db.meal.findMany({
+        where: { userId: ctx.userId, eatenAt: { gte: start, lt: end } },
+        select: {
+          id: true,
+          name: true,
+          mealType: true,
+          eatenAt: true,
+          items: {
+            select: {
+              id: true,
+              ingredientId: true,
+              quantity: true,
+              ingredient: { select: { id: true, name: true } }
+            }
+          }
         },
         orderBy: { eatenAt: "desc" }
       });

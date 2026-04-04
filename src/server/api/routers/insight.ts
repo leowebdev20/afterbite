@@ -106,8 +106,7 @@ export const insightRouter = createTRPCRouter({
 
       const entryBuckets = buildEntryBuckets(entries, ctx.timeZone);
       const ingredientWindows = buildIngredientWindows(meals, ctx.timeZone);
-
-      let updated = 0;
+      const aggregated = new Map<string, number[]>();
       for (const [ingredientId, window] of ingredientWindows.entries()) {
         const severities: Array<{ symptom: string; severity: number }> = [];
         for (const key of window.allKeys) {
@@ -135,22 +134,35 @@ export const insightRouter = createTRPCRouter({
         }
 
         for (const [symptom, values] of grouped.entries()) {
-          const impactScore = clamp(1, average(values), 10);
-          await ctx.db.ingredientImpactSnapshot.create({
-            data: {
-              userId: ctx.userId,
-              ingredientId,
-              impactScore,
-              confidence: values.length >= 12 ? "HIGH" : values.length >= 4 ? "MEDIUM" : "LOW",
-              sampleSize: values.length,
-              symptom
-            }
-          });
-          updated += 1;
+          const aggregateKey = `${ingredientId}::${symptom}`;
+          const current = aggregated.get(aggregateKey) ?? [];
+          current.push(...values);
+          aggregated.set(aggregateKey, current);
         }
       }
 
-      return { updated };
+      const computedAt = new Date();
+      const rows = Array.from(aggregated.entries()).map(([key, values]) => {
+        const [ingredientId, symptom] = key.split("::");
+        return {
+          userId: ctx.userId,
+          ingredientId,
+          impactScore: clamp(1, average(values), 10),
+          confidence: values.length >= 12 ? ("HIGH" as const) : values.length >= 4 ? ("MEDIUM" as const) : ("LOW" as const),
+          sampleSize: values.length,
+          symptom,
+          computedAt
+        };
+      });
+
+      await ctx.db.$transaction(async (tx) => {
+        await tx.ingredientImpactSnapshot.deleteMany({ where: { userId: ctx.userId } });
+        if (rows.length > 0) {
+          await tx.ingredientImpactSnapshot.createMany({ data: rows });
+        }
+      });
+
+      return { updated: rows.length };
     }),
   getIngredientImpact: protectedProcedure
     .input(z.object({ ingredientId: z.string() }))

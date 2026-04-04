@@ -17,6 +17,7 @@ const SYMPTOMS = [
 ] as const;
 
 type SymptomKey = (typeof SYMPTOMS)[number]["key"];
+type HistoryPreset = "today" | "7d" | "30d" | "all";
 
 const DEFAULT_VALUES: Record<SymptomKey, number> = {
   bloating: 5,
@@ -30,13 +31,50 @@ const DEFAULT_VALUES: Record<SymptomKey, number> = {
   energy: 5
 };
 
+const HISTORY_PRESETS: Array<{ id: HistoryPreset; label: string }> = [
+  { id: "today", label: "Today" },
+  { id: "7d", label: "7 days" },
+  { id: "30d", label: "30 days" },
+  { id: "all", label: "All" }
+];
+
+function toDateTimeLocalValue(date: Date) {
+  const copy = new Date(date);
+  copy.setMinutes(copy.getMinutes() - copy.getTimezoneOffset());
+  return copy.toISOString().slice(0, 16);
+}
+
+function fromDateTimeLocalValue(value: string) {
+  return value ? new Date(value) : new Date();
+}
+
 export default function LogSymptomsPage() {
   const utils = api.useUtils();
+  const [historyPreset, setHistoryPreset] = useState<HistoryPreset>("today");
   const [values, setValues] = useState<Record<SymptomKey, number>>(DEFAULT_VALUES);
+  const [loggedAt, setLoggedAt] = useState(() => toDateTimeLocalValue(new Date()));
+  const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
 
   const saveSymptoms = api.symptom.quickLogSymptoms.useMutation();
-  const todaySymptoms = api.symptom.listTodaySymptoms.useQuery();
+  const updateSymptoms = api.symptom.updateSymptomLog.useMutation();
+  const deleteLog = api.symptom.deleteSymptomLog.useMutation();
+
+  const historyRange = useMemo(() => {
+    if (historyPreset === "all") return undefined;
+    if (historyPreset === "today") {
+      const from = new Date();
+      from.setHours(0, 0, 0, 0);
+      return { from };
+    }
+    const days = historyPreset === "7d" ? 7 : 30;
+    const from = new Date();
+    from.setDate(from.getDate() - (days - 1));
+    from.setHours(0, 0, 0, 0);
+    return { from };
+  }, [historyPreset]);
+
+  const logs = api.symptom.listSymptoms.useQuery(historyRange);
 
   const entries = useMemo(
     () => SYMPTOMS.map(({ key }) => ({ symptom: key, severity: values[key] })),
@@ -78,13 +116,44 @@ export default function LogSymptomsPage() {
   };
 
   const onSave = async () => {
-    await saveSymptoms.mutateAsync({ entries });
+    if (editingLogId) {
+      await updateSymptoms.mutateAsync({ id: editingLogId, entries, loggedAt: fromDateTimeLocalValue(loggedAt) });
+    } else {
+      await saveSymptoms.mutateAsync({ entries, loggedAt: fromDateTimeLocalValue(loggedAt) });
+    }
     setTouched(false);
+    setEditingLogId(null);
+    setLoggedAt(toDateTimeLocalValue(new Date()));
     await Promise.all([
+      utils.symptom.listSymptoms.invalidate(),
       utils.symptom.listTodaySymptoms.invalidate(),
       utils.forecast.getDailyImpactScore.invalidate(),
       utils.forecast.getTomorrowPrediction.invalidate()
     ]);
+  };
+
+  const onEditLog = (log: NonNullable<typeof logs.data>[number]) => {
+    const nextValues = { ...DEFAULT_VALUES };
+    for (const entry of log.entries) {
+      nextValues[entry.symptom as SymptomKey] = entry.severity;
+    }
+    setValues(nextValues);
+    setLoggedAt(toDateTimeLocalValue(new Date(log.loggedAt)));
+    setEditingLogId(log.id);
+    setTouched(true);
+  };
+
+  const onDeleteLog = async (logId: string) => {
+    const confirmed = window.confirm("Delete this symptom log?");
+    if (!confirmed) return;
+    await deleteLog.mutateAsync({ id: logId });
+    if (editingLogId === logId) {
+      setEditingLogId(null);
+      setValues(DEFAULT_VALUES);
+      setLoggedAt(toDateTimeLocalValue(new Date()));
+      setTouched(false);
+    }
+    await Promise.all([utils.symptom.listSymptoms.invalidate(), utils.symptom.listTodaySymptoms.invalidate()]);
   };
 
   return (
@@ -94,6 +163,19 @@ export default function LogSymptomsPage() {
       <p className="mb-3 text-sm text-muted-foreground">Scale: 1 = low symptom (better), 10 = high symptom (worse).</p>
 
       <section className="rounded-[2rem] border bg-white/95 p-4 shadow-[0_10px_30px_rgba(75,94,140,0.16)] ">
+        <label className="mb-3 block text-sm">
+          <span className="mb-1 block text-muted-foreground">Log time</span>
+          <input
+            type="datetime-local"
+            className="w-full rounded-2xl border bg-background/85 px-4 py-3 text-base outline-none ring-primary/30 focus:ring-2"
+            value={loggedAt}
+            onChange={(event) => {
+              setTouched(true);
+              setLoggedAt(event.target.value);
+            }}
+          />
+        </label>
+
         <div className="mb-3 flex items-center gap-2 text-xs">
           <button
             type="button"
@@ -144,21 +226,86 @@ export default function LogSymptomsPage() {
         <button
           type="button"
           onClick={onSave}
-          disabled={saveSymptoms.isPending || !touched}
+          disabled={saveSymptoms.isPending || updateSymptoms.isPending || !touched}
           className="mt-4 w-full rounded-full bg-[linear-gradient(135deg,hsl(148_70%_41%),hsl(162_78%_37%))] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
         >
-          {saveSymptoms.isPending ? "Saving..." : "Save Symptoms"}
+          {saveSymptoms.isPending || updateSymptoms.isPending
+            ? "Saving..."
+            : editingLogId
+              ? "Update Symptoms"
+              : "Save Symptoms"}
         </button>
+        {editingLogId ? (
+          <button
+            type="button"
+            onClick={() => {
+              setEditingLogId(null);
+              setValues(DEFAULT_VALUES);
+              setLoggedAt(toDateTimeLocalValue(new Date()));
+              setTouched(false);
+            }}
+            className="mt-2 w-full rounded-full border px-4 py-3 text-sm font-semibold"
+          >
+            Cancel editing
+          </button>
+        ) : null}
       </section>
 
       <section className="mt-4 rounded-[2rem] border bg-white/95 p-4 shadow-[0_10px_30px_rgba(75,94,140,0.16)] ">
-        <h2 className="text-lg font-semibold">Today&apos;s symptom logs</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Symptom history</h2>
+          <div className="flex flex-wrap gap-1">
+            {HISTORY_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => setHistoryPreset(preset.id)}
+                className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                  historyPreset === preset.id
+                    ? "bg-[hsl(243_44%_92%)] text-[hsl(243_35%_35%)]"
+                    : "bg-white/92 text-muted-foreground"
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <ul className="mt-3 space-y-2">
-          {(todaySymptoms.data ?? []).map((log) => (
+          {logs.isLoading ? <li className="text-sm text-muted-foreground">Loading symptom logs...</li> : null}
+          {logs.error ? (
+            <li className="rounded-2xl border bg-white/92 p-3 text-sm text-[hsl(356_62%_40%)]">
+              Could not load symptom logs right now.
+            </li>
+          ) : null}
+          {(logs.data ?? []).map((log) => (
             <li key={log.id} className="rounded-2xl border bg-white/92 p-3">
-              <p className="text-xs text-muted-foreground">
-                {new Date(log.loggedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  {new Date(log.loggedAt).toLocaleString([], {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  })}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onEditLog(log)}
+                    className="rounded-full border px-3 py-1 text-xs font-semibold"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteLog(log.id)}
+                    className="rounded-full border px-3 py-1 text-xs font-semibold"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {log.entries.map((entry) => (
                   <span key={entry.id} className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-foreground">
@@ -168,8 +315,8 @@ export default function LogSymptomsPage() {
               </div>
             </li>
           ))}
-          {(todaySymptoms.data?.length ?? 0) === 0 ? (
-            <li className="text-sm text-muted-foreground">No symptom logs yet today.</li>
+          {!logs.isLoading && !logs.error && (logs.data?.length ?? 0) === 0 ? (
+            <li className="text-sm text-muted-foreground">No symptom logs in this period yet.</li>
           ) : null}
         </ul>
       </section>
