@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { TRPCReactProvider } from "@/trpc/provider";
 import { BottomNav } from "@/components/common/bottom-nav";
+import { AppSessionProvider } from "@/components/providers/session-provider";
 
 export const metadata: Metadata = {
   title: "AfterBite",
@@ -16,10 +17,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <TRPCReactProvider>
-          <div className="mx-auto w-full max-w-md px-2 pb-28 pt-2">{children}</div>
-          <BottomNav />
-        </TRPCReactProvider>
+        <AppSessionProvider>
+          <TRPCReactProvider>
+            <div className="mx-auto w-full max-w-md px-2 pb-28 pt-2">{children}</div>
+            <BottomNav />
+          </TRPCReactProvider>
+        </AppSessionProvider>
       </body>
     </html>
   );

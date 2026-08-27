@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { signOut, useSession } from "next-auth/react";
 import { Bell, Clock3, Moon, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { StatusMessage } from "@/components/common/status-message";
@@ -19,6 +20,7 @@ const FALLBACK_TIMEZONES = [
 ];
 
 export default function SettingsPage() {
+  const { data: session } = useSession();
   const settings = api.settings.getSettings.useQuery();
   const updateTimeZone = api.settings.updateTimeZone.useMutation();
   const updateReminderTimes = api.settings.updateReminderTimes.useMutation();
@@ -215,6 +217,21 @@ export default function SettingsPage() {
             Enable notifications
           </button>
         ) : null}
+      </section>
+
+      <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
+        <h2 className="text-lg font-semibold">Account</h2>
+        <div className="mt-3 rounded-2xl border bg-background/70 p-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Signed in as</p>
+          <p className="mt-2 text-sm font-medium">{session?.user?.email ?? "Unknown user"}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void signOut({ callbackUrl: "/auth/signin" })}
+          className="mt-3 w-full rounded-full border border-[hsl(354_61%_65%)] bg-[hsl(354_71%_96%)] px-4 py-2.5 text-sm font-semibold text-[hsl(354_58%_32%)]"
+        >
+          Sign out
+        </button>
       </section>
 
       <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">

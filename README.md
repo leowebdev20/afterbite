@@ -25,6 +25,7 @@ AfterBite is a mobile-first PWA to track meals and body symptoms, discover food 
 - Node.js 20+
 - pnpm 10+ (or use `corepack pnpm ...` if pnpm is not globally installed)
 - PostgreSQL instance (local Docker or Supabase)
+- START APP WITH corepack pnpm dev  
 
 ### 2) Install dependencies
 ```bash
