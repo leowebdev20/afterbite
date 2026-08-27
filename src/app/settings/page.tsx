@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/common/page-header";
+import { StatusMessage } from "@/components/common/status-message";
 import { api } from "@/trpc/client";
 
 const FALLBACK_TIMEZONES = [
@@ -92,6 +93,17 @@ export default function SettingsPage() {
   return (
     <main className="min-h-dvh px-2 py-3">
       <PageHeader title="Settings" subtitle="Personalize how AfterBite interprets your logs." />
+
+      {settings.isLoading ? (
+        <div className="mb-4">
+          <StatusMessage tone="loading" title="Loading settings" />
+        </div>
+      ) : null}
+      {settings.error ? (
+        <div className="mb-4">
+          <StatusMessage tone="error" title="Could not load settings" body="You can refresh and try again." />
+        </div>
+      ) : null}
 
       <section className="rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
         <label className="block text-sm">
@@ -204,13 +216,33 @@ export default function SettingsPage() {
       <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
         <h2 className="text-lg font-semibold">Data</h2>
         <div className="mt-3 flex gap-2">
-          <button type="button" onClick={onExport} className="flex-1 rounded-full border px-4 py-2 text-sm font-semibold">
-            Export data
+          <button
+            type="button"
+            onClick={onExport}
+            disabled={exportData.isFetching}
+            className="flex-1 rounded-full border px-4 py-2 text-sm font-semibold disabled:opacity-60"
+          >
+            {exportData.isFetching ? "Exporting..." : "Export data"}
           </button>
-          <button type="button" onClick={onDeleteAll} className="flex-1 rounded-full border px-4 py-2 text-sm font-semibold">
-            Delete all
+          <button
+            type="button"
+            onClick={onDeleteAll}
+            disabled={deleteAll.isPending}
+            className="flex-1 rounded-full border px-4 py-2 text-sm font-semibold disabled:opacity-60"
+          >
+            {deleteAll.isPending ? "Deleting..." : "Delete all"}
           </button>
         </div>
+        {exportData.error ? (
+          <div className="mt-3">
+            <StatusMessage tone="error" title="Export failed" body="Try again in a moment." />
+          </div>
+        ) : null}
+        {deleteAll.error ? (
+          <div className="mt-3">
+            <StatusMessage tone="error" title="Delete failed" body="No data was removed. Try again." />
+          </div>
+        ) : null}
         {exportJson ? (
           <textarea
             className="mt-3 h-40 w-full rounded-2xl border bg-background/80 p-3 text-xs"

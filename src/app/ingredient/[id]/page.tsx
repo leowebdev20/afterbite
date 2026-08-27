@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/common/page-header";
+import { StatusMessage } from "@/components/common/status-message";
 import { api } from "@/trpc/client";
 
 const SYMPTOM_FILTERS = [
@@ -63,6 +64,16 @@ export default function IngredientImpactPage() {
           <span className="text-lg text-muted-foreground">/ 10</span>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">Lower is better. Scores reflect next-day and day+2/day+3 symptom windows.</p>
+        {detail.isLoading ? (
+          <div className="mt-3">
+            <StatusMessage tone="loading" title="Loading ingredient impact" />
+          </div>
+        ) : null}
+        {detail.error ? (
+          <div className="mt-3">
+            <StatusMessage tone="error" title="Could not load ingredient data" body="Open insights again or refresh this page." />
+          </div>
+        ) : null}
       </section>
 
       <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)]">
@@ -99,8 +110,10 @@ export default function IngredientImpactPage() {
               </div>
             </li>
           ))}
-          {breakdown.length === 0 ? (
-            <li className="text-sm text-muted-foreground">No breakdown available yet.</li>
+          {!detail.isLoading && !detail.error && breakdown.length === 0 ? (
+            <li>
+              <StatusMessage title="No symptom breakdown yet" body="This ingredient needs more meal and symptom history first." />
+            </li>
           ) : null}
         </ul>
       </section>
@@ -122,7 +135,9 @@ export default function IngredientImpactPage() {
               <span className="text-[10px] font-medium text-muted-foreground">{point.date.slice(5)}</span>
             </div>
           ))}
-          {trend.length === 0 ? <p className="text-sm text-muted-foreground">No trend data yet.</p> : null}
+          {!detail.isLoading && !detail.error && trend.length === 0 ? (
+            <StatusMessage title="No trend data yet" body="Trends appear after this ingredient has correlated symptom windows." />
+          ) : null}
         </div>
       </section>
 
@@ -147,7 +162,11 @@ export default function IngredientImpactPage() {
               </p>
             </li>
           ))}
-          {recent.length === 0 ? <li className="text-sm text-muted-foreground">No symptom entries yet.</li> : null}
+          {!detail.isLoading && !detail.error && recent.length === 0 ? (
+            <li>
+              <StatusMessage title="No symptom entries yet" body="Log symptoms after eating this ingredient to build history." />
+            </li>
+          ) : null}
         </ul>
       </section>
     </main>

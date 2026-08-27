@@ -50,7 +50,7 @@ pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
 ```
-`db:seed` inserts realistic sample history (last 7 days meals/symptoms + recipes + impact snapshots) so the app is immediately populated for UI testing.
+`db:seed` inserts realistic sample history (roughly two weeks of meals/symptoms + recipes + impact snapshots) so the app is immediately populated for UI testing.
 
 ### 5) Run development server
 ```bash
@@ -89,14 +89,16 @@ This executes [`prisma/security/enable_rls.sql`](/Users/leonardo/Documents/codin
 This is correct for the current architecture (server-side Prisma).  
 When you later add Supabase client-side auth access, replace deny policies with user-scoped policies.
 
-## Current App Routes (Scaffold)
-- `/`: Home dashboard (live daily score query)
-- `/log-meal`: Working meal logging flow (ingredient search, custom ingredient, save meal)
-- `/log-symptoms`: Working slider-based symptom logging flow
-- `/summary`: Daily summary placeholder
-- `/insights`: Food impact insights placeholder
-- `/recipes`: Recipe builder placeholder
-- `/ingredient/[id]`: Ingredient impact page placeholder
+## Current App Routes
+- `/`: Home dashboard with live impact score, today's activity, tomorrow prediction, and recent meals.
+- `/log-meal`: Meal logging and meal history with ingredient search, custom ingredients, portions, meal type, date/time, edit/delete, and optional recipe save.
+- `/log-symptoms`: Symptom logging and symptom history with presets, sliders, date/time, edit/delete, and history filters.
+- `/summary`: Daily summary with today's impact, weekly trend, meal count, symptom count, latest symptoms, and meals logged.
+- `/insights`: Food impact insights with symptom filters, trigger evidence, example days, recompute action, and possible new culprit watchlist.
+- `/recipes`: Recipe builder with create/edit/delete flows and predicted impact preview.
+- `/ingredient/[id]`: Ingredient impact detail with symptom breakdown, symptom filtering, trend, and recent symptom entries.
+- `/settings`: Time zone, reminder times, profile info, data export/delete, and legal/safety links.
+- `/privacy`, `/terms`, `/medical-disclaimer`: Publish-facing legal and safety pages.
 
 ## Architecture Overview
 
@@ -130,12 +132,12 @@ The app currently includes deterministic service modules:
 
 These provide v1 impact scoring and next-day prediction foundations without paid external APIs.
 
-### Unknown Ingredient Backtrace (planned, no AI)
-Planned deterministic feature to detect \"possible new trigger ingredients\" when users feel bad but known ingredients look safe:
-- identify unexpected-bad days (score significantly worse than baseline)
-- isolate low-history ingredients eaten in prior 48-72 hours
-- rank candidates by repetition + symptom overlap + time proximity
-- show a watchlist section in Insights with suspicion score and evidence count
+### Unknown Ingredient Backtrace (No AI)
+The app includes a deterministic watchlist for possible new trigger ingredients:
+- identifies unexpected-bad days compared with baseline
+- isolates low-history ingredients eaten in the correlation window
+- ranks candidates by symptom intensity, low sample size, and repetition
+- shows a watchlist section in Insights with suspicion score and evidence count
 
 ## Testing
 
@@ -161,9 +163,10 @@ Runs with a mobile emulation project (`Pixel 7`) and starts local dev server aut
 - Keep `.env` private and never commit secrets.
 
 ## Suggested Next Build Steps
-1. Build Insights page with ingredient correlation cards and confidence labels.
-2. Add unknown culprit backtrace section (`possible new triggers`) in Insights.
-3. Add daily summary visualizations and trend comparison.
-4. Implement background recomputation job for analytics snapshots.
-5. Replace demo user context with Auth.js when preparing publish.
-6. Add offline caching for core logging flows (PWA hardening).
+1. Replace demo user context with Auth.js and real user isolation.
+2. Convert production schema changes into proper Prisma migrations.
+3. Move insight snapshot recomputation to a scheduled/background job.
+4. Add real reminder notifications and browser permission handling.
+5. Turn export data into a downloadable JSON file and add stronger delete confirmation.
+6. Add offline caching/queueing for meal and symptom logging.
+7. Wire CI for typecheck, lint, unit tests, e2e tests, and build.

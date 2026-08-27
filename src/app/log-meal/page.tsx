@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
+import { StatusMessage } from "@/components/common/status-message";
 import { api } from "@/trpc/client";
 
 const MEAL_TYPES = ["BREAKFAST", "LUNCH", "DINNER", "SNACK", "OTHER"] as const;
@@ -338,11 +339,13 @@ export default function LogMealPage() {
         </div>
         <ul className="mt-3 space-y-2">
           {meals.isLoading ? (
-            <li className="text-sm text-muted-foreground">Loading meals...</li>
+            <li>
+              <StatusMessage tone="loading" title="Loading meal history" />
+            </li>
           ) : null}
           {meals.error ? (
-            <li className="rounded-2xl border bg-white/92 p-3 text-sm text-[hsl(356_62%_40%)]">
-              Could not load meals right now.
+            <li>
+              <StatusMessage tone="error" title="Could not load meals" body="Your saved meal list is temporarily unavailable." />
             </li>
           ) : null}
           {(meals.data ?? []).map((meal) => (
@@ -389,7 +392,9 @@ export default function LogMealPage() {
             </li>
           ))}
           {!meals.isLoading && !meals.error && (meals.data?.length ?? 0) === 0 ? (
-            <li className="text-sm text-muted-foreground">No meals in this period yet.</li>
+            <li>
+              <StatusMessage title="No meals in this period" body="Change the filter or log a meal above." />
+            </li>
           ) : null}
         </ul>
       </section>

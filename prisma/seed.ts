@@ -65,7 +65,14 @@ async function main() {
     "Oats",
     "Blueberries",
     "Banana",
-    "Almonds"
+    "Almonds",
+    "Garlic",
+    "Onion",
+    "Sourdough",
+    "Peanut Butter",
+    "Turkey",
+    "Broccoli",
+    "Cucumber"
   ];
 
   await prisma.ingredient.createMany({
@@ -87,7 +94,7 @@ async function main() {
     {
       name: "Overnight oats",
       mealType: "BREAKFAST" as const,
-      daysAgo: 6,
+      daysAgo: 13,
       hour: 8,
       minute: 20,
       ingredients: [
@@ -99,7 +106,7 @@ async function main() {
     {
       name: "Chicken rice bowl",
       mealType: "LUNCH" as const,
-      daysAgo: 6,
+      daysAgo: 13,
       hour: 13,
       minute: 5,
       ingredients: [
@@ -111,7 +118,7 @@ async function main() {
     {
       name: "Greek yogurt snack",
       mealType: "SNACK" as const,
-      daysAgo: 5,
+      daysAgo: 12,
       hour: 10,
       minute: 15,
       ingredients: [
@@ -123,7 +130,7 @@ async function main() {
     {
       name: "Pasta dinner",
       mealType: "DINNER" as const,
-      daysAgo: 5,
+      daysAgo: 12,
       hour: 20,
       minute: 30,
       ingredients: [
@@ -135,11 +142,11 @@ async function main() {
     {
       name: "Avocado toast",
       mealType: "BREAKFAST" as const,
-      daysAgo: 4,
+      daysAgo: 11,
       hour: 8,
       minute: 10,
       ingredients: [
-        { name: "Wheat Flour", quantity: 70 },
+        { name: "Sourdough", quantity: 70 },
         { name: "Avocado", quantity: 60 },
         { name: "Eggs", quantity: 50 }
       ]
@@ -147,7 +154,7 @@ async function main() {
     {
       name: "Salmon with spinach",
       mealType: "DINNER" as const,
-      daysAgo: 4,
+      daysAgo: 11,
       hour: 19,
       minute: 20,
       ingredients: [
@@ -159,7 +166,7 @@ async function main() {
     {
       name: "Chicken parm",
       mealType: "LUNCH" as const,
-      daysAgo: 3,
+      daysAgo: 10,
       hour: 13,
       minute: 12,
       ingredients: [
@@ -171,7 +178,7 @@ async function main() {
     {
       name: "Rice eggs bowl",
       mealType: "LUNCH" as const,
-      daysAgo: 2,
+      daysAgo: 9,
       hour: 12,
       minute: 50,
       ingredients: [
@@ -183,7 +190,7 @@ async function main() {
     {
       name: "Pizza night",
       mealType: "DINNER" as const,
-      daysAgo: 1,
+      daysAgo: 8,
       hour: 20,
       minute: 5,
       ingredients: [
@@ -195,13 +202,173 @@ async function main() {
     {
       name: "Salmon quinoa",
       mealType: "LUNCH" as const,
-      daysAgo: 0,
+      daysAgo: 7,
       hour: 12,
       minute: 30,
       ingredients: [
         { name: "Salmon", quantity: 150 },
         { name: "Olive Oil", quantity: 8 },
         { name: "Spinach", quantity: 100 }
+      ]
+    },
+    {
+      name: "Yogurt berry bowl",
+      mealType: "BREAKFAST" as const,
+      daysAgo: 6,
+      hour: 8,
+      minute: 15,
+      ingredients: [
+        { name: "Yogurt", quantity: 170 },
+        { name: "Blueberries", quantity: 45 },
+        { name: "Almonds", quantity: 18 }
+      ]
+    },
+    {
+      name: "Turkey sandwich",
+      mealType: "LUNCH" as const,
+      daysAgo: 6,
+      hour: 13,
+      minute: 0,
+      ingredients: [
+        { name: "Sourdough", quantity: 90 },
+        { name: "Turkey", quantity: 120 },
+        { name: "Cucumber", quantity: 30 }
+      ]
+    },
+    {
+      name: "Garlic chicken bowl",
+      mealType: "DINNER" as const,
+      daysAgo: 5,
+      hour: 19,
+      minute: 15,
+      ingredients: [
+        { name: "Chicken", quantity: 150 },
+        { name: "Rice", quantity: 120 },
+        { name: "Garlic", quantity: 10 },
+        { name: "Onion", quantity: 40 }
+      ]
+    },
+    {
+      name: "Peanut butter toast",
+      mealType: "SNACK" as const,
+      daysAgo: 5,
+      hour: 16,
+      minute: 45,
+      ingredients: [
+        { name: "Sourdough", quantity: 70 },
+        { name: "Peanut Butter", quantity: 25 },
+        { name: "Banana", quantity: 60 }
+      ]
+    },
+    {
+      name: "Tomato pasta",
+      mealType: "DINNER" as const,
+      daysAgo: 4,
+      hour: 20,
+      minute: 10,
+      ingredients: [
+        { name: "Wheat Flour", quantity: 120 },
+        { name: "Tomato", quantity: 100 },
+        { name: "Mozzarella", quantity: 80 },
+        { name: "Olive Oil", quantity: 12 }
+      ]
+    },
+    {
+      name: "Avocado eggs plate",
+      mealType: "BREAKFAST" as const,
+      daysAgo: 4,
+      hour: 8,
+      minute: 5,
+      ingredients: [
+        { name: "Avocado", quantity: 65 },
+        { name: "Eggs", quantity: 60 },
+        { name: "Cucumber", quantity: 30 }
+      ]
+    },
+    {
+      name: "Turkey rice bowl",
+      mealType: "LUNCH" as const,
+      daysAgo: 3,
+      hour: 12,
+      minute: 40,
+      ingredients: [
+        { name: "Turkey", quantity: 130 },
+        { name: "Rice", quantity: 120 },
+        { name: "Broccoli", quantity: 70 }
+      ]
+    },
+    {
+      name: "Greek yogurt snack",
+      mealType: "SNACK" as const,
+      daysAgo: 3,
+      hour: 17,
+      minute: 10,
+      ingredients: [
+        { name: "Yogurt", quantity: 160 },
+        { name: "Blueberries", quantity: 40 },
+        { name: "Almonds", quantity: 20 }
+      ]
+    },
+    {
+      name: "Pizza night",
+      mealType: "DINNER" as const,
+      daysAgo: 2,
+      hour: 20,
+      minute: 5,
+      ingredients: [
+        { name: "Wheat Flour", quantity: 120 },
+        { name: "Tomato", quantity: 80 },
+        { name: "Mozzarella", quantity: 90 },
+        { name: "Garlic", quantity: 8 }
+      ]
+    },
+    {
+      name: "Salmon quinoa",
+      mealType: "LUNCH" as const,
+      daysAgo: 2,
+      hour: 12,
+      minute: 30,
+      ingredients: [
+        { name: "Salmon", quantity: 150 },
+        { name: "Olive Oil", quantity: 8 },
+        { name: "Spinach", quantity: 100 }
+      ]
+    },
+    {
+      name: "Oats breakfast",
+      mealType: "BREAKFAST" as const,
+      daysAgo: 1,
+      hour: 8,
+      minute: 25,
+      ingredients: [
+        { name: "Oats", quantity: 75 },
+        { name: "Milk", quantity: 180 },
+        { name: "Banana", quantity: 90 }
+      ]
+    },
+    {
+      name: "Chicken salad",
+      mealType: "LUNCH" as const,
+      daysAgo: 1,
+      hour: 13,
+      minute: 20,
+      ingredients: [
+        { name: "Chicken", quantity: 140 },
+        { name: "Spinach", quantity: 80 },
+        { name: "Cucumber", quantity: 35 },
+        { name: "Olive Oil", quantity: 10 }
+      ]
+    },
+    {
+      name: "Rice eggs bowl",
+      mealType: "LUNCH" as const,
+      daysAgo: 0,
+      hour: 12,
+      minute: 30,
+      ingredients: [
+        { name: "Rice", quantity: 130 },
+        { name: "Eggs", quantity: 55 },
+        { name: "Spinach", quantity: 80 }
       ]
     }
   ];
@@ -227,12 +394,19 @@ async function main() {
   }
 
   const daySymptomProfiles: Array<{ daysAgo: number; morning: number[]; evening: number[] }> = [
-    { daysAgo: 6, morning: [4, 3, 4, 3, 3, 2, 6, 7, 7], evening: [4, 3, 4, 4, 3, 2, 6, 7, 7] },
-    { daysAgo: 5, morning: [5, 4, 5, 4, 4, 3, 5, 6, 6], evening: [7, 6, 7, 6, 5, 4, 4, 5, 5] },
-    { daysAgo: 4, morning: [7, 5, 7, 6, 6, 4, 4, 5, 5], evening: [4, 3, 4, 4, 3, 2, 6, 7, 7] },
-    { daysAgo: 3, morning: [4, 3, 4, 3, 3, 2, 7, 7, 7], evening: [5, 4, 5, 5, 4, 3, 5, 6, 6] },
-    { daysAgo: 2, morning: [6, 5, 6, 6, 5, 4, 4, 5, 5], evening: [4, 3, 4, 4, 3, 2, 7, 8, 8] },
-    { daysAgo: 1, morning: [3, 3, 3, 3, 2, 2, 7, 8, 8], evening: [5, 4, 5, 4, 4, 3, 6, 6, 6] },
+    { daysAgo: 13, morning: [4, 3, 4, 3, 3, 2, 6, 7, 7], evening: [4, 3, 4, 4, 3, 2, 6, 7, 7] },
+    { daysAgo: 12, morning: [5, 4, 5, 4, 4, 3, 5, 6, 6], evening: [7, 6, 7, 6, 5, 4, 4, 5, 5] },
+    { daysAgo: 11, morning: [7, 5, 7, 6, 6, 4, 4, 5, 5], evening: [4, 3, 4, 4, 3, 2, 6, 7, 7] },
+    { daysAgo: 10, morning: [4, 3, 4, 3, 3, 2, 7, 7, 7], evening: [5, 4, 5, 5, 4, 3, 5, 6, 6] },
+    { daysAgo: 9, morning: [6, 5, 6, 6, 5, 4, 4, 5, 5], evening: [4, 3, 4, 4, 3, 2, 7, 8, 8] },
+    { daysAgo: 8, morning: [3, 3, 3, 3, 2, 2, 7, 8, 8], evening: [5, 4, 5, 4, 4, 3, 6, 6, 6] },
+    { daysAgo: 7, morning: [6, 5, 6, 6, 5, 4, 4, 5, 5], evening: [5, 4, 5, 5, 4, 3, 6, 6, 6] },
+    { daysAgo: 6, morning: [4, 3, 4, 4, 3, 2, 6, 7, 7], evening: [5, 4, 5, 5, 4, 3, 5, 6, 6] },
+    { daysAgo: 5, morning: [7, 6, 7, 6, 5, 4, 4, 5, 5], evening: [8, 7, 8, 7, 6, 5, 3, 4, 4] },
+    { daysAgo: 4, morning: [6, 5, 6, 5, 4, 3, 5, 6, 6], evening: [5, 4, 5, 5, 4, 3, 6, 6, 6] },
+    { daysAgo: 3, morning: [4, 3, 4, 3, 3, 2, 7, 7, 7], evening: [6, 5, 6, 5, 4, 3, 5, 6, 6] },
+    { daysAgo: 2, morning: [7, 6, 7, 7, 6, 5, 3, 4, 4], evening: [6, 5, 6, 6, 5, 4, 4, 5, 5] },
+    { daysAgo: 1, morning: [5, 4, 5, 4, 4, 3, 6, 6, 6], evening: [4, 3, 4, 3, 3, 2, 7, 7, 7] },
     { daysAgo: 0, morning: [6, 5, 6, 6, 5, 4, 4, 5, 5], evening: [5, 4, 5, 5, 4, 3, 6, 6, 6] }
   ];
 
@@ -285,7 +459,14 @@ async function main() {
     { ingredient: "Milk", symptom: "bloating", impactScore: 5.9, sampleSize: 9, confidence: "MEDIUM" as const },
     { ingredient: "Rice", symptom: "digestionQuality", impactScore: 2.6, sampleSize: 11, confidence: "MEDIUM" as const },
     { ingredient: "Spinach", symptom: "energy", impactScore: 2.1, sampleSize: 12, confidence: "HIGH" as const },
-    { ingredient: "Salmon", symptom: "inflammation", impactScore: 2.4, sampleSize: 8, confidence: "MEDIUM" as const }
+    { ingredient: "Salmon", symptom: "inflammation", impactScore: 2.4, sampleSize: 8, confidence: "MEDIUM" as const },
+    { ingredient: "Garlic", symptom: "bloating", impactScore: 5.8, sampleSize: 4, confidence: "LOW" as const },
+    { ingredient: "Onion", symptom: "bloating", impactScore: 5.4, sampleSize: 4, confidence: "LOW" as const },
+    { ingredient: "Sourdough", symptom: "brainFog", impactScore: 4.9, sampleSize: 5, confidence: "LOW" as const },
+    { ingredient: "Peanut Butter", symptom: "headache", impactScore: 4.1, sampleSize: 3, confidence: "LOW" as const },
+    { ingredient: "Turkey", symptom: "energy", impactScore: 2.8, sampleSize: 5, confidence: "LOW" as const },
+    { ingredient: "Broccoli", symptom: "digestionQuality", impactScore: 3.1, sampleSize: 4, confidence: "LOW" as const },
+    { ingredient: "Cucumber", symptom: "mood", impactScore: 2.4, sampleSize: 3, confidence: "LOW" as const }
   ];
 
   await prisma.ingredientImpactSnapshot.createMany({

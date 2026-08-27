@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/common/page-header";
+import { StatusMessage } from "@/components/common/status-message";
 import { api } from "@/trpc/client";
 
 const SYMPTOMS = [
@@ -272,10 +273,14 @@ export default function LogSymptomsPage() {
           </div>
         </div>
         <ul className="mt-3 space-y-2">
-          {logs.isLoading ? <li className="text-sm text-muted-foreground">Loading symptom logs...</li> : null}
+          {logs.isLoading ? (
+            <li>
+              <StatusMessage tone="loading" title="Loading symptom history" />
+            </li>
+          ) : null}
           {logs.error ? (
-            <li className="rounded-2xl border bg-white/92 p-3 text-sm text-[hsl(356_62%_40%)]">
-              Could not load symptom logs right now.
+            <li>
+              <StatusMessage tone="error" title="Could not load symptom logs" body="Your saved entries are temporarily unavailable." />
             </li>
           ) : null}
           {(logs.data ?? []).map((log) => (
@@ -316,7 +321,9 @@ export default function LogSymptomsPage() {
             </li>
           ))}
           {!logs.isLoading && !logs.error && (logs.data?.length ?? 0) === 0 ? (
-            <li className="text-sm text-muted-foreground">No symptom logs in this period yet.</li>
+            <li>
+              <StatusMessage title="No symptom logs in this period" body="Change the filter or save a new symptom entry above." />
+            </li>
           ) : null}
         </ul>
       </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/common/page-header";
+import { StatusMessage } from "@/components/common/status-message";
 import { api } from "@/trpc/client";
 
 const SYMPTOM_LABELS: Record<string, string> = {
@@ -44,6 +45,16 @@ export default function SummaryPage() {
           </span>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">Lower is better: 1 = minimal impact, 10 = strongest negative impact.</p>
+        {daily.isLoading ? (
+          <div className="mt-3">
+            <StatusMessage tone="loading" title="Loading today's impact" />
+          </div>
+        ) : null}
+        {daily.error ? (
+          <div className="mt-3">
+            <StatusMessage tone="error" title="Could not load today's impact" body="Try refreshing the page." />
+          </div>
+        ) : null}
       </section>
 
       <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
@@ -54,6 +65,8 @@ export default function SummaryPage() {
           </span>
         </div>
         <div className="mt-4 grid grid-cols-7 gap-2">
+          {weekly.isLoading ? <StatusMessage tone="loading" title="Loading weekly trend" /> : null}
+          {weekly.error ? <StatusMessage tone="error" title="Could not load weekly trend" /> : null}
           {weekDays.map((day) => {
             const height = day.score !== null ? Math.max(18, day.score * 7.2) : 18;
             return (
@@ -68,8 +81,8 @@ export default function SummaryPage() {
               </div>
             );
           })}
-          {(weekly.data?.days?.length ?? 0) === 0 ? (
-            <p className="text-sm text-muted-foreground">No data yet for the last week.</p>
+          {!weekly.isLoading && !weekly.error && (weekly.data?.days?.length ?? 0) === 0 ? (
+            <StatusMessage title="No weekly data yet" body="Log symptoms over a few days to see the trend." />
           ) : null}
         </div>
       </section>
@@ -114,8 +127,20 @@ export default function SummaryPage() {
               </li>
             );
           })}
-          {(todaySymptoms.data?.length ?? 0) === 0 ? (
-            <li className="text-sm text-muted-foreground">No symptoms logged yet today.</li>
+          {todaySymptoms.isLoading ? (
+            <li>
+              <StatusMessage tone="loading" title="Loading symptoms" />
+            </li>
+          ) : null}
+          {todaySymptoms.error ? (
+            <li>
+              <StatusMessage tone="error" title="Could not load symptoms" />
+            </li>
+          ) : null}
+          {!todaySymptoms.isLoading && !todaySymptoms.error && (todaySymptoms.data?.length ?? 0) === 0 ? (
+            <li>
+              <StatusMessage title="No symptoms logged today" body="Use Log Symptoms when you have a body signal to capture." />
+            </li>
           ) : null}
         </ul>
       </section>
@@ -136,8 +161,20 @@ export default function SummaryPage() {
               </p>
             </li>
           ))}
-          {(todayMeals.data?.length ?? 0) === 0 ? (
-            <li className="text-sm text-muted-foreground">No meals logged yet today.</li>
+          {todayMeals.isLoading ? (
+            <li>
+              <StatusMessage tone="loading" title="Loading meals" />
+            </li>
+          ) : null}
+          {todayMeals.error ? (
+            <li>
+              <StatusMessage tone="error" title="Could not load meals" />
+            </li>
+          ) : null}
+          {!todayMeals.isLoading && !todayMeals.error && (todayMeals.data?.length ?? 0) === 0 ? (
+            <li>
+              <StatusMessage title="No meals logged today" body="Log a meal to connect food and symptoms." />
+            </li>
           ) : null}
         </ul>
       </section>

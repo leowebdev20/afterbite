@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { PageHeader } from "@/components/common/page-header";
+import { StatusMessage } from "@/components/common/status-message";
 import { api } from "@/trpc/client";
 
 export default function RecipesPage() {
@@ -138,6 +139,8 @@ export default function RecipesPage() {
 
         <div className="rounded-3xl border bg-white/92 p-4">
           <p className="text-sm text-muted-foreground">Predicted impact</p>
+          {prediction.isLoading ? <StatusMessage tone="loading" title="Checking recipe impact" /> : null}
+          {prediction.error ? <StatusMessage tone="error" title="Could not predict impact" /> : null}
           <div className="mt-1 flex items-center gap-2">
             <span className="text-2xl font-semibold">
               {prediction.data?.score !== null && prediction.data?.score !== undefined ? prediction.data.score : "--"}
@@ -181,6 +184,16 @@ export default function RecipesPage() {
       <section className="mt-4 rounded-[2rem] border bg-white/95 p-4 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
         <h2 className="text-xl font-semibold">Saved recipes</h2>
         <ul className="mt-2 space-y-2">
+          {recipes.isLoading ? (
+            <li>
+              <StatusMessage tone="loading" title="Loading recipes" />
+            </li>
+          ) : null}
+          {recipes.error ? (
+            <li>
+              <StatusMessage tone="error" title="Could not load recipes" body="Refresh and try again." />
+            </li>
+          ) : null}
           {(recipes.data ?? []).map((recipe) => (
             <li key={recipe.id} className="rounded-3xl border bg-white/92 p-4 shadow-[0_8px_20px_rgba(78,98,125,0.10)]">
               <div className="flex items-center justify-between">
@@ -207,8 +220,10 @@ export default function RecipesPage() {
               </p>
             </li>
           ))}
-          {(recipes.data?.length ?? 0) === 0 ? (
-            <li className="text-sm text-muted-foreground">No recipes yet. Create your first one above.</li>
+          {!recipes.isLoading && !recipes.error && (recipes.data?.length ?? 0) === 0 ? (
+            <li>
+              <StatusMessage title="No recipes yet" body="Save a common meal here to preview its predicted impact faster." />
+            </li>
           ) : null}
         </ul>
       </section>

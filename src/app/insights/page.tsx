@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { PageHeader } from "@/components/common/page-header";
+import { StatusMessage } from "@/components/common/status-message";
 import { api } from "@/trpc/client";
 
 const SYMPTOM_FILTERS = [
@@ -68,6 +69,16 @@ export default function InsightsPage() {
           </div>
         </div>
         <ul className="mt-3 space-y-3">
+          {topTriggers.isLoading ? (
+            <li>
+              <StatusMessage tone="loading" title="Checking your strongest patterns" body="This usually takes a moment." />
+            </li>
+          ) : null}
+          {topTriggers.error ? (
+            <li>
+              <StatusMessage tone="error" title="Could not load trigger insights" body="Try recomputing or refreshing the page." />
+            </li>
+          ) : null}
           {(topTriggers.data ?? []).map((item) => (
             <li key={item.id} className="rounded-3xl border bg-white/92 p-4 shadow-[0_8px_20px_rgba(78,98,125,0.10)]">
               <div className="flex items-center justify-between">
@@ -94,9 +105,9 @@ export default function InsightsPage() {
               </div>
             </li>
           ))}
-          {(topTriggers.data?.length ?? 0) === 0 ? (
-            <li className="rounded-2xl border bg-white/92 p-4 text-sm text-muted-foreground">
-              No trigger data yet. Log a few meals and symptoms first to build the baseline.
+          {!topTriggers.isLoading && !topTriggers.error && (topTriggers.data?.length ?? 0) === 0 ? (
+            <li>
+              <StatusMessage title="No trigger data yet" body="Log a few meals and symptom entries, then recompute insights." />
             </li>
           ) : null}
         </ul>
@@ -111,6 +122,16 @@ export default function InsightsPage() {
           <span className="rounded-full border bg-white/92 px-3 py-1 text-xs font-semibold text-muted-foreground">Investigate</span>
         </div>
         <ul className="mt-3 space-y-3">
+          {unknownCulprits.isLoading ? (
+            <li>
+              <StatusMessage tone="loading" title="Scanning for weak signals" body="Looking for unusual ingredients before bad days." />
+            </li>
+          ) : null}
+          {unknownCulprits.error ? (
+            <li>
+              <StatusMessage tone="error" title="Could not load the watchlist" body="Refresh and try again in a moment." />
+            </li>
+          ) : null}
           {(unknownCulprits.data ?? []).map((item) => (
             <li key={item.id} className="rounded-3xl border bg-white/92 p-4 shadow-[0_8px_20px_rgba(78,98,125,0.10)]">
               <div className="flex items-center justify-between">
@@ -128,9 +149,9 @@ export default function InsightsPage() {
               <p className="mt-2 text-xs text-muted-foreground">Action: keep it in watch mode and log symptoms next morning.</p>
             </li>
           ))}
-          {(unknownCulprits.data?.length ?? 0) === 0 ? (
-            <li className="rounded-2xl border bg-white/92 p-4 text-sm text-muted-foreground">
-              No unusual culprits detected yet. Keep logging to surface weak signals.
+          {!unknownCulprits.isLoading && !unknownCulprits.error && (unknownCulprits.data?.length ?? 0) === 0 ? (
+            <li>
+              <StatusMessage title="No unusual culprits detected" body="Keep logging. This section gets useful once new ingredients repeat around bad symptom days." />
             </li>
           ) : null}
         </ul>
