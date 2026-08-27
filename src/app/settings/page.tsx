@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Bell, Clock3, Moon, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/common/page-header";
 import { StatusMessage } from "@/components/common/status-message";
 import { api } from "@/trpc/client";
+import { DEFAULT_REMINDERS, normalizeReminderEntries, scheduleReminderNotifications } from "@/lib/reminders";
 
 const FALLBACK_TIMEZONES = [
   "UTC",
@@ -25,8 +27,8 @@ export default function SettingsPage() {
   const deleteAll = api.settings.deleteAllData.useMutation();
   const [timeZones, setTimeZones] = useState<string[]>(FALLBACK_TIMEZONES);
   const [value, setValue] = useState<string>(settings.data?.timeZone ?? "UTC");
-  const [reminder1, setReminder1] = useState("09:00");
-  const [reminder2, setReminder2] = useState("20:00");
+  const [reminders, setReminders] = useState(DEFAULT_REMINDERS);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [age, setAge] = useState<string>("");
   const [height, setHeight] = useState<string>("");
   const [weight, setWeight] = useState<string>("");
@@ -45,24 +47,46 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (settings.data?.timeZone) setValue(settings.data.timeZone);
-    if (settings.data?.reminderTimes?.[0]) setReminder1(settings.data.reminderTimes[0]);
-    if (settings.data?.reminderTimes?.[1]) setReminder2(settings.data.reminderTimes[1]);
+    const normalized = normalizeReminderEntries(settings.data?.reminders ?? settings.data?.reminderTimes ?? DEFAULT_REMINDERS);
+    setReminders(normalized);
     if (settings.data?.age) setAge(String(settings.data.age));
     if (settings.data?.heightCm) setHeight(String(settings.data.heightCm));
     if (settings.data?.weightKg) setWeight(String(settings.data.weightKg));
     if (settings.data?.caloriesGoal) setCalories(String(settings.data.caloriesGoal));
   }, [settings.data]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotificationsEnabled(Notification.permission === "granted");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+      scheduleReminderNotifications(reminders);
+    }
+  }, [reminders]);
+
+  const enableNotifications = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    const permission = await Notification.requestPermission();
+    setNotificationsEnabled(permission === "granted");
+    if (permission === "granted") {
+      scheduleReminderNotifications(reminders);
+    }
+  };
+
   const onSave = async () => {
     setSaveState("saving");
-    const reminderTimes = [reminder1, reminder2].filter(Boolean);
+    const reminderTimes = reminders.filter((item) => item.enabled).map((item) => item.time);
     try {
       await Promise.all([
         updateTimeZone.mutateAsync({
           timeZone: value
         }),
         updateReminderTimes.mutateAsync({
-          reminderTimes
+          reminderTimes,
+          reminders
         }),
         updateProfile.mutateAsync({
           age: age ? Number(age) : null,
@@ -77,6 +101,14 @@ export default function SettingsPage() {
     } catch {
       setSaveState("error");
     }
+  };
+
+  const toggleReminder = (id: string) => {
+    setReminders((current) => current.map((entry) => (entry.id === id ? { ...entry, enabled: !entry.enabled } : entry)));
+  };
+
+  const updateReminderTime = (id: string, time: string) => {
+    setReminders((current) => current.map((entry) => (entry.id === id ? { ...entry, time } : entry)));
   };
 
   const onExport = async () => {
@@ -123,28 +155,66 @@ export default function SettingsPage() {
       </section>
 
       <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
-        <h2 className="text-lg font-semibold">Reminders</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Choose 1–2 daily times to log meals or symptoms.</p>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <label className="text-sm">
-            <span className="mb-1 block text-muted-foreground">Reminder 1</span>
-            <input
-              type="time"
-              className="w-full rounded-2xl border bg-background/80 px-3 py-2"
-              value={reminder1}
-              onChange={(e) => setReminder1(e.target.value)}
-            />
-          </label>
-          <label className="text-sm">
-            <span className="mb-1 block text-muted-foreground">Reminder 2</span>
-            <input
-              type="time"
-              className="w-full rounded-2xl border bg-background/80 px-3 py-2"
-              value={reminder2}
-              onChange={(e) => setReminder2(e.target.value)}
-            />
-          </label>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold">Reminders</h2>
+            <p className="mt-1 text-sm text-muted-foreground">3 daily prompts to stay consistent.</p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border bg-[hsl(243_44%_96%)] px-2.5 py-1 text-[11px] font-semibold text-[hsl(243_36%_34%)]">
+            <Bell className="h-3.5 w-3.5" />
+            Active
+          </div>
         </div>
+
+        <div className="space-y-3">
+          {reminders.map((reminder) => (
+            <div key={reminder.id} className="rounded-2xl border bg-background/70 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[hsl(223_60%_95%)] text-[hsl(223_52%_40%)]">
+                    {reminder.label.toLowerCase().includes("symptom") ? <Moon className="h-4 w-4" /> : <Clock3 className="h-4 w-4" />}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium">{reminder.label}</p>
+                    <p className="text-[11px] text-muted-foreground">{reminder.label.toLowerCase().includes("symptom") ? "Morning check-in" : "Meal log prompt"}</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => toggleReminder(reminder.id)}
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                    reminder.enabled
+                      ? "bg-[hsl(145_42%_91%)] text-[hsl(145_48%_22%)]"
+                      : "bg-slate-200 text-slate-600"
+                  }`}
+                >
+                  {reminder.enabled ? "On" : "Off"}
+                </button>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <input
+                  type="time"
+                  value={reminder.time}
+                  onChange={(event) => updateReminderTime(reminder.id, event.target.value)}
+                  className="w-full rounded-xl border bg-white px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {!notificationsEnabled ? (
+          <button
+            type="button"
+            className="mt-3 inline-flex items-center gap-2 rounded-full bg-[linear-gradient(135deg,hsl(245_58%_62%),hsl(218_64%_61%))] px-3 py-2 text-xs font-semibold text-white"
+            onClick={() => void enableNotifications()}
+          >
+            <Bell className="h-3.5 w-3.5" />
+            Enable notifications
+          </button>
+        ) : null}
       </section>
 
       <section className="mt-4 rounded-[2rem] border bg-white/95 p-5 shadow-[0_10px_30px_rgba(78,98,125,0.16)] ">
@@ -228,9 +298,12 @@ export default function SettingsPage() {
             type="button"
             onClick={onDeleteAll}
             disabled={deleteAll.isPending}
-            className="flex-1 rounded-full border px-4 py-2 text-sm font-semibold disabled:opacity-60"
+            className="flex-1 rounded-full border border-[hsl(354_61%_65%)] bg-[hsl(354_71%_96%)] px-4 py-2 text-sm font-semibold text-[hsl(354_58%_32%)] disabled:opacity-60"
           >
-            {deleteAll.isPending ? "Deleting..." : "Delete all"}
+            <span className="inline-flex items-center gap-2">
+              <Trash2 className="h-4 w-4" />
+              {deleteAll.isPending ? "Deleting..." : "Delete all"}
+            </span>
           </button>
         </div>
         {exportData.error ? (

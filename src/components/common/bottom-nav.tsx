@@ -29,6 +29,7 @@ export function BottomNav() {
                 <Link
                   href={item.href}
                   aria-label="Quick log meal"
+                  aria-current={active ? "page" : undefined}
                   className="inline-flex h-14 w-14 -translate-y-5 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(243_45%_52%),hsl(215_68%_58%))] text-white shadow-[0_10px_22px_rgba(70,90,160,0.42)] transition-transform active:scale-95"
                 >
                   <Icon className="h-6 w-6" />
@@ -41,8 +42,11 @@ export function BottomNav() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium ${
-                  active ? "text-[hsl(239_35%_35%)]" : "text-muted-foreground"
+                aria-current={active ? "page" : undefined}
+                className={`flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium transition-colors ${
+                  active
+                    ? "bg-[hsl(244_47%_95%)] text-[hsl(239_35%_35%)] shadow-[inset_0_0_0_1px_rgba(111,118,198,0.18)]"
+                    : "text-muted-foreground"
                 }`}
               >
                 <Icon className={`h-4 w-4 ${active ? "text-[hsl(239_35%_45%)]" : ""}`} />

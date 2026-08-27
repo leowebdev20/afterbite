@@ -1,9 +1,18 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { normalizeReminderEntries } from "@/lib/reminders";
+
+const reminderEntrySchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  time: z.string(),
+  enabled: z.boolean()
+});
 
 const settingsOutputSchema = z.object({
   timeZone: z.string(),
-  reminderTimes: z.array(z.string()).nullable(),
+  reminderTimes: z.array(z.union([z.string(), reminderEntrySchema])).nullable(),
+  reminders: z.array(reminderEntrySchema).nullable(),
   age: z.number().nullable(),
   heightCm: z.number().nullable(),
   weightKg: z.number().nullable(),
@@ -15,6 +24,7 @@ function toSettingsOutput(
     | {
         timeZone: string;
         reminderTimes: unknown;
+        reminders?: unknown;
         age: number | null;
         heightCm: number | null;
         weightKg: number | null;
@@ -24,9 +34,22 @@ function toSettingsOutput(
     | undefined,
   fallbackTimeZone: string
 ) {
+  const rawReminderList =
+    Array.isArray(settings?.reminders) && settings.reminders.every((item) => item && typeof item === "object")
+      ? (settings.reminders as Array<{ id: string; label: string; time: string; enabled: boolean }>)
+      : Array.isArray(settings?.reminderTimes) && settings.reminderTimes.every((item) => item && typeof item === "object")
+        ? (settings.reminderTimes as Array<{ id: string; label: string; time: string; enabled: boolean }>)
+        : Array.isArray(settings?.reminderTimes)
+          ? (settings.reminderTimes as unknown[])
+          : null;
+
+  const reminders = rawReminderList ? normalizeReminderEntries(rawReminderList) : null;
+  const reminderTimes = reminders ? reminders.map((item) => item.time) : null;
+
   return {
     timeZone: settings?.timeZone ?? fallbackTimeZone,
-    reminderTimes: (settings?.reminderTimes as string[] | null) ?? null,
+    reminderTimes,
+    reminders,
     age: settings?.age ?? null,
     heightCm: settings?.heightCm ?? null,
     weightKg: settings?.weightKg ?? null,
@@ -69,27 +92,49 @@ export const settingsRouter = createTRPCRouter({
   updateReminderTimes: protectedProcedure
     .input(
       z.object({
-        reminderTimes: z.array(z.string()).max(2)
+        reminderTimes: z.array(z.string()).max(3).optional(),
+        reminders: z
+          .array(
+            z.object({
+              id: z.string(),
+              label: z.string(),
+              time: z.string(),
+              enabled: z.boolean()
+            })
+          )
+          .max(3)
+          .optional()
       })
     )
     .output(settingsOutputSchema)
     .mutation(async ({ ctx, input }) => {
+      const normalizedReminders =
+        input.reminders ??
+        (input.reminderTimes ?? []).map((time, index) => ({
+          id: index === 0 ? "meal-1" : index === 1 ? "meal-2" : "symptom-1",
+          label: index === 2 ? "Symptom reminder" : "Meal reminder",
+          time,
+          enabled: true
+        }));
+
+      const reminderTimes = normalizedReminders.map((item) => item.time);
+
       const settings = await ctx.db.userSettings.upsert({
         where: { userId: ctx.userId },
         update: {
-          reminderTimes: input.reminderTimes
+          reminderTimes: normalizedReminders
         },
         create: {
           userId: ctx.userId,
           timeZone: ctx.timeZone,
-          reminderTimes: input.reminderTimes,
+          reminderTimes: normalizedReminders,
           age: null,
           heightCm: null,
           weightKg: null,
           caloriesGoal: null
         }
       });
-      return toSettingsOutput(settings, ctx.timeZone);
+      return toSettingsOutput({ ...settings, reminders: normalizedReminders }, ctx.timeZone);
     }),
   updateProfile: protectedProcedure
     .input(
