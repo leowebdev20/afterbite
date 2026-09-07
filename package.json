@@ -17,6 +17,9 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:security:rls": "prisma db execute --file prisma/security/enable_rls.sql --schema prisma/schema.prisma",
+    "ios:build": "test -n \"$APP_URL\" || (echo 'APP_URL must be an HTTPS production URL' && exit 1); case \"$APP_URL\" in https://*) ;; *) echo 'APP_URL must start with https://' && exit 1 ;; esac; pnpm build && npx cap sync ios",
+    "ios:open": "npx cap open ios",
+    "ios:update": "npx cap sync ios",
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
@@ -41,6 +44,9 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
     "@playwright/test": "^1.51.0",
     "@testing-library/react": "^16.2.0",
     "@types/bcryptjs": "^3.0.0",

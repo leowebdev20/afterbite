@@ -73,6 +73,9 @@ Open `http://localhost:3000`.
 - `pnpm db:push`: push schema without migration files
 - `pnpm db:seed`: seed demo user + realistic sample history
 - `pnpm db:security:rls`: enable+enforce RLS and block `anon/authenticated` table access in Supabase `public` schema
+- `pnpm ios:build`: build Next.js and sync iOS project with Capacitor
+- `pnpm ios:open`: open iOS project in Xcode
+- `pnpm ios:update`: sync latest code to iOS without rebuilding
 
 ## Supabase Security (RLS Alert Fix)
 If Supabase warns with `rls_disabled_in_public`, run:
@@ -158,6 +161,50 @@ Runs with a mobile emulation project (`Pixel 7`) and starts local dev server aut
 - Deploy app to Vercel.
 - Use Supabase Postgres connection string in Vercel env vars.
 - Add Auth.js before publish if user accounts are required.
+
+## iOS / TestFlight Deployment
+
+The app includes Capacitor support for native iOS testing via TestFlight.
+
+### Quick Start
+```bash
+# 1. Deploy your app to production (Vercel, etc.)
+export APP_URL=https://your-app.vercel.app
+
+# 2. Build and sync iOS project
+pnpm ios:build
+
+# 3. Open Xcode
+pnpm ios:open
+
+# 4. In Xcode: Product > Archive > Upload to App Store Connect
+# 5. Create TestFlight build and invite testers
+```
+
+### Requirements
+- macOS with Xcode 15+
+- Apple Developer Account ($99/year for app distribution)
+- Production-deployed app (HTTPS required)
+
+### Full Guide
+See [`docs/TESTFLIGHT_DEPLOYMENT.md`](docs/TESTFLIGHT_DEPLOYMENT.md) for detailed step-by-step instructions covering:
+- Apple Developer account setup
+- Creating App ID and signing certificates
+- Building and archiving in Xcode
+- Uploading to App Store Connect
+- Setting up TestFlight testers
+- Debugging on real iPhone
+
+### iOS Configuration
+See [`docs/IOS_CONFIG.md`](docs/IOS_CONFIG.md) for iOS-specific settings:
+- Permissions and capabilities
+- Safe area handling
+- App icons and splash screens
+- Network and session persistence
+- Debugging via Safari DevTools
+
+### Progress Tracking
+Use [`docs/TESTFLIGHT_CHECKLIST.md`](docs/TESTFLIGHT_CHECKLIST.md) to track your progress through each phase.
 
 ## Git/GitHub Notes
 - `docs/` is ignored in `.gitignore` to keep private planning docs out of GitHub.
