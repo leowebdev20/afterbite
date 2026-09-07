@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BadgeCheck,
   BrainCircuit,
@@ -46,17 +46,17 @@ export default function InsightsPage() {
     watchlistRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const handleRecompute = async () => {
+  const handleRecompute = useCallback(async () => {
     await recompute.mutateAsync();
     writeLastRecomputeAt(Date.now());
-  };
+  }, [recompute]);
 
   useEffect(() => {
     const lastRun = readLastRecomputeAt();
     if (shouldAutoRecompute(lastRun, Date.now())) {
       void handleRecompute();
     }
-  }, []);
+  }, [handleRecompute]);
 
   const onTouchStart = (event: React.TouchEvent<HTMLElement>) => {
     if (window.scrollY > 0) return;
