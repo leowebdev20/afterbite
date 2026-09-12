@@ -2,21 +2,21 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 export default function SignInPage() {
-  const router = useRouter();
   const [mode, setMode] = useState<"signin" | "register">("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       if (mode === "register") {
@@ -35,6 +35,7 @@ export default function SignInPage() {
       const result = await signIn("credentials", {
         email,
         password,
+        callbackUrl: "/",
         redirect: false
       });
 
@@ -42,8 +43,10 @@ export default function SignInPage() {
         throw new Error("Invalid email or password.");
       }
 
-      router.push("/");
-      router.refresh();
+      setSuccess(mode === "register" ? "Account created. Opening AfterBite..." : "Signed in. Opening AfterBite...");
+      window.setTimeout(() => {
+        window.location.replace(result?.url ?? "/");
+      }, 400);
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Something went wrong.");
     } finally {
@@ -99,6 +102,7 @@ export default function SignInPage() {
           </label>
 
           {error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
+          {success ? <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{success}</p> : null}
 
           <button
             type="submit"
