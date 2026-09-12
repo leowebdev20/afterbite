@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Activity, ArrowRight, Check, Clock3, MapPin, Sparkles, Utensils, X } from "lucide-react";
 import { api } from "@/trpc/client";
 import { DEFAULT_REMINDERS } from "@/lib/reminders";
@@ -35,7 +36,9 @@ const FALLBACK_TIMEZONES = [
 ];
 
 export function OnboardingModal({ userName }: { userName?: string }) {
-  const settings = api.settings.getSettings.useQuery();
+  const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
+  const settings = api.settings.getSettings.useQuery(undefined, { enabled: isAuthenticated });
   const updateTimeZone = api.settings.updateTimeZone.useMutation();
   const updateReminderTimes = api.settings.updateReminderTimes.useMutation();
   const updateProfile = api.settings.updateProfile.useMutation();
@@ -77,13 +80,13 @@ export function OnboardingModal({ userName }: { userName?: string }) {
   }, [settings.data]);
 
   useEffect(() => {
-    if (settings.isLoading) return;
+    if (!isAuthenticated || settings.isLoading) return;
 
     const seen = window.localStorage.getItem(STORAGE_KEY);
     if (!seen) {
       setIsOpen(true);
     }
-  }, [settings.isLoading]);
+  }, [isAuthenticated, settings.isLoading]);
 
   const totalSteps = 4;
 
